@@ -15,6 +15,7 @@
   justify-content: space-between;
   padding: 0 20px;
   height: 56px;
+  position: relative;
 }
 
 .navbar-brand {
@@ -84,6 +85,17 @@
   color: white;
 }
 
+.navbar-lamp {
+  position: absolute;
+  right: 8px;
+  top: 100%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: top center;
+}
+
 @media (max-width: 640px) {
   .navbar-brand span {
     display: none;
@@ -91,5 +103,8 @@
   .navbar-link {
     padding: 6px 10px;
     font-size: 0.82rem;
+  }
+  .navbar-lamp {
+    right: 0;
   }
 }

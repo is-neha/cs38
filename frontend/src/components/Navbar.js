@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ThemeToggle from './ThemeToggle';
 import './Navbar.css';
 
 function Navbar() {
@@ -35,6 +36,9 @@ function Navbar() {
               <Link to="/register" className="navbar-btn navbar-btn--primary">Sign up</Link>
             </>
           )}
+        </div>
+        <div className="navbar-lamp">
+          <ThemeToggle />
         </div>
       </div>
     </nav>

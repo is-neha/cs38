@@ -1,12 +1,8 @@
 .theme-lamp {
-  position: fixed;
-  right: 20px;
-  bottom: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  z-index: 999;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   animation: lampSwing 4s ease-in-out infinite;
   transform-origin: top center;
@@ -14,8 +10,8 @@
 
 @keyframes lampSwing {
   0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(3deg); }
-  75% { transform: rotate(-3deg); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
 }
 
 .theme-lamp:hover {
@@ -23,33 +19,33 @@
 }
 
 .theme-lamp__cord {
-  width: 12px;
-  height: 48px;
-  color: #94a3b8;
+  width: 8px;
+  height: 20px;
+  color: var(--text-light);
   flex-shrink: 0;
 }
 
 .theme-lamp__bulb {
-  width: 48px;
-  height: 56px;
+  width: 30px;
+  height: 36px;
   flex-shrink: 0;
   transition: transform 0.3s;
 }
 
 .theme-lamp:hover .theme-lamp__bulb {
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .theme-lamp:active .theme-lamp__bulb {
-  transform: scale(0.9);
+  transform: scale(0.85);
 }
 
 .theme-lamp__icon {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
 }
 
 [data-theme="dark"] .theme-lamp__icon {
-  filter: drop-shadow(0 4px 12px rgba(251,191,36,0.15));
+  filter: drop-shadow(0 2px 8px rgba(251,191,36,0.25));
 }
