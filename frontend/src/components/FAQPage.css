@@ -254,6 +254,7 @@
 }
 
 .faq-category-card__body {
+  min-height: 0;
   overflow-y: auto;
   max-height: 480px;
   padding: 10px;
