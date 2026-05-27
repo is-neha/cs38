@@ -256,11 +256,13 @@
 .faq-category-card__body {
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   max-height: 480px;
   padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+}
+
+.faq-category-card__body > * + * {
+  margin-top: 8px;
 }
 
 /* ---- Search results list (flat) ---- */
