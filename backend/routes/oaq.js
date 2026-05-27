@@ -214,7 +214,8 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     const oaq = await OAQ.findById(req.params.id).populate('submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });
 
-    const bestAnswer = oaq.answers.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
+    const acceptedAnswer = oaq.answers.find(a => a.accepted);
+    const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
     const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
     let communityCat = await FAQ.findOne({ category: 'Community Questions' });
@@ -259,6 +260,27 @@ router.put('/:id/answers/:answerId', auth, admin, async (req, res) => {
       .populate('answers.submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });
     res.json(oaq);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ── Admin: accept answer ── */
+router.put('/:id/answers/:answerId/accept', auth, admin, async (req, res) => {
+  try {
+    const oaq = await OAQ.findById(req.params.id);
+    if (!oaq) return res.status(404).json({ error: 'Not found' });
+
+    const answer = oaq.answers.id(req.params.answerId);
+    if (!answer) return res.status(404).json({ error: 'Answer not found' });
+
+    answer.accepted = !answer.accepted;
+    await oaq.save();
+
+    const updated = await OAQ.findById(oaq._id)
+      .populate('submittedBy', 'name')
+      .populate('answers.submittedBy', 'name');
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

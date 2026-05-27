@@ -59,6 +59,11 @@ function AdminPage() {
     if (res.ok) { setEditAnswer(null); setEditText(''); fetchOaqs(); }
   };
 
+  const handleAcceptAnswer = async (oaqId, answerId) => {
+    const res = await authFetch(`/api/oaq/${oaqId}/answers/${answerId}/accept`, { method: 'PUT' });
+    if (res.ok) fetchOaqs();
+  };
+
   const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
   const canPromote = oaq => oaq.netVotes >= 10;
@@ -155,6 +160,10 @@ function AdminPage() {
                               <span>by {ans.submittedBy?.name || 'Anonymous'}</span>
                               <span>{formatDate(ans.createdAt)}</span>
                               <span>{ans.upvotes}↑ {ans.downvotes}↓</span>
+                              {ans.accepted && <span className="admin-accepted-badge">✓ Accepted</span>}
+                              <button className="admin-btn--text" onClick={() => handleAcceptAnswer(oaq._id, ans._id)}>
+                                {ans.accepted ? 'Unaccept' : 'Accept'}
+                              </button>
                               <button className="admin-btn--text" onClick={() => { setEditAnswer(ans._id); setEditText(ans.text); }}>Edit</button>
                             </div>
                           </div>

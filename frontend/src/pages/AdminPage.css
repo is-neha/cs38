@@ -208,3 +208,9 @@
   display: flex;
   gap: 6px;
 }
+
+.admin-accepted-badge {
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
