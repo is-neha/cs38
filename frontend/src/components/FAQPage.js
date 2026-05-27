@@ -7,7 +7,7 @@ function FAQPage() {
   const [searchResults, setSearchResults] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [openItems, setOpenItems] = useState(new Set());
+  const [openItems, setOpenItems] = useState({});
   const searchTimer = useRef(null);
 
   useEffect(() => {
@@ -43,13 +43,10 @@ function FAQPage() {
   const isSearching = searchResults !== null;
 
   const toggleItem = useCallback((catIndex, qIndex) => {
-    const key = `${catIndex}-${qIndex}`;
-    setOpenItems(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+    setOpenItems(prev => ({
+      ...prev,
+      [catIndex]: prev[catIndex] === qIndex ? null : qIndex,
+    }));
   }, []);
 
   if (loading) {
@@ -131,7 +128,7 @@ function FAQPage() {
                       number={qIdx + 1}
                       question={item.q}
                       answer={item.a}
-                      isOpen={openItems.has(`${catIdx}-${qIdx}`)}
+                      isOpen={openItems[catIdx] === qIdx}
                       onToggle={() => toggleItem(catIdx, qIdx)}
                     />
                   ))}
@@ -155,7 +152,7 @@ function FAQPage() {
                       number={qIdx + 1}
                       question={item.q}
                       answer={item.a}
-                      isOpen={openItems.has(`${catIdx}-${qIdx}`)}
+                      isOpen={openItems[catIdx] === qIdx}
                       onToggle={() => toggleItem(catIdx, qIdx)}
                     />
                   ))}
