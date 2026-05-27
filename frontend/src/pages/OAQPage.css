@@ -18,30 +18,30 @@
 .oaq-title {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .oaq-subtitle {
   font-size: 1rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* ---- Submit ---- */
 
 .oaq-submit-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-md);
 }
 
 .oaq-submit-card h2 {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -62,7 +62,7 @@
   resize: vertical;
   outline: none;
   transition: border-color 0.2s;
-  color: #1e293b;
+  color: var(--text-secondary);
 }
 
 .oaq-textarea:focus {
@@ -75,8 +75,8 @@
 }
 
 .oaq-error {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--danger-bg);
+  color: var(--danger);
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 0.85rem;
@@ -123,14 +123,14 @@
 }
 
 .oaq-btn--primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: var(--accent-gradient);
   color: white;
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
 .oaq-btn--secondary {
-  background: #eef2ff;
-  color: #4f46e5;
+  background: var(--accent-light);
+  color: var(--accent);
 }
 
 .oaq-btn--secondary:hover:not(:disabled) {
@@ -148,14 +148,14 @@
 
 .oaq-count {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .oaq-sort {
   display: flex;
   gap: 4px;
-  background: #f1f5f9;
+  background: var(--bg-muted);
   border-radius: 8px;
   padding: 3px;
 }
@@ -168,29 +168,29 @@
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 500;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .oaq-sort-btn.active {
-  background: white;
-  color: #0f172a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ---- Loading & Empty ---- */
 
 .oaq-loader {
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-light);
   padding: 40px;
   font-size: 0.95rem;
 }
 
 .oaq-empty {
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-light);
   padding: 60px 20px;
   font-size: 0.95rem;
 }
@@ -205,23 +205,23 @@
 
 .oaq-card {
   display: flex;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 
 .oaq-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
 }
 
 .oaq-card--approved {
-  border-left: 3px solid #22c55e;
+  border-left: 3px solid var(--success);
 }
 
 .oaq-card--promoted {
-  border-left: 3px solid #4f46e5;
+  border-left: 3px solid var(--accent);
   background: #f8faff;
 }
 
@@ -233,7 +233,7 @@
   align-items: center;
   gap: 4px;
   padding: 14px 10px;
-  background: #f8fafc;
+  background: var(--bg-card-hover);
   min-width: 56px;
 }
 
@@ -247,7 +247,7 @@
   background: none;
   cursor: pointer;
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--text-light);
   transition: all 0.15s;
 }
 
@@ -257,13 +257,13 @@
 }
 
 .oaq-vote-btn--up:hover {
-  background: #dcfce7;
-  color: #22c55e;
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .oaq-vote-btn--down:hover {
-  background: #fef2f2;
-  color: #ef4444;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .oaq-vote-btn--sm {
@@ -291,11 +291,11 @@
 }
 
 .oaq-vote-up {
-  color: #22c55e;
+  color: var(--success);
 }
 
 .oaq-vote-down {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 /* ---- Card body ---- */
@@ -316,7 +316,7 @@
 .oaq-card__question {
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-primary);
   flex: 1;
   line-height: 1.4;
 }
@@ -331,16 +331,17 @@
   letter-spacing: 0.03em;
 }
 
-.oaq-status--open { background: #f1f5f9; color: #64748b; }
-.oaq-status--approved { background: #dcfce7; color: #166534; }
-.oaq-status--promoted { background: #eef2ff; color: #4f46e5; }
-.oaq-status--rejected { background: #fef2f2; color: #991b1b; }
+.oaq-status--open {   background: var(--bg-muted);
+  color: var(--text-muted); }
+.oaq-status--approved { background: var(--success-bg); color: var(--success); }
+.oaq-status--promoted { background: var(--accent-light); color: var(--accent); }
+.oaq-status--rejected { background: var(--danger-bg); color: var(--danger); }
 
 .oaq-card__meta {
   display: flex;
   gap: 14px;
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--text-light);
   margin-bottom: 10px;
 }
 
@@ -354,7 +355,7 @@
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--accent);
   cursor: pointer;
 }
 
@@ -373,11 +374,11 @@
 .oaq-answers {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border);
 }
 
 .oaq-answers__empty {
-  color: #94a3b8;
+  color: var(--text-light);
   font-size: 0.85rem;
   margin-bottom: 10px;
 }
@@ -387,7 +388,7 @@
   gap: 10px;
   padding: 12px;
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--bg-card-hover);
   margin-bottom: 8px;
 }
 
@@ -419,11 +420,11 @@
   display: flex;
   gap: 10px;
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .oaq-answer__accepted-badge {
-  color: #22c55e;
+  color: var(--success);
   font-weight: 600;
 }
 
@@ -442,7 +443,7 @@
 /* ---- Ghost button ---- */
 .oaq-btn--ghost {
   background: none;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 0;
 }
 
@@ -459,8 +460,8 @@
   font-size: 0.9rem;
   font-family: inherit;
   outline: none;
-  color: #1e293b;
-  background: white;
+  color: var(--text-secondary);
+  background: var(--bg-card);
   cursor: pointer;
   transition: border-color 0.2s;
 }
@@ -477,7 +478,7 @@
 /* ---- Description & Category on cards ---- */
 .oaq-card__desc {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   line-height: 1.5;
   margin: 4px 0 6px;
 }
@@ -486,8 +487,8 @@
   display: inline-block;
   font-size: 0.72rem;
   font-weight: 500;
-  color: #4f46e5;
-  background: #eef2ff;
+  color: var(--accent);
+  background: var(--accent-light);
   padding: 2px 8px;
   border-radius: 6px;
   margin-bottom: 6px;
@@ -511,7 +512,7 @@
 .oaq-related strong {
   display: block;
   margin-bottom: 6px;
-  color: #4f46e5;
+  color: var(--accent);
 }
 
 .oaq-related-item {
@@ -526,5 +527,5 @@
 }
 
 .oaq-related-item:not(:last-child) {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
 }

@@ -1,9 +1,10 @@
 .navbar {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--navbar-bg);
+  border-bottom: 1px solid var(--navbar-border);
   position: sticky;
   top: 0;
   z-index: 200;
+  transition: background 0.3s, border-color 0.3s;
 }
 
 .navbar-inner {
@@ -22,14 +23,14 @@
   gap: 10px;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   text-decoration: none;
 }
 
 .navbar-logo {
   width: 24px;
   height: 24px;
-  color: #4f46e5;
+  color: var(--accent);
 }
 
 .navbar-links {
@@ -42,15 +43,15 @@
   padding: 8px 14px;
   font-size: 0.88rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--text-muted);
   text-decoration: none;
   border-radius: 8px;
   transition: background 0.2s, color 0.2s;
 }
 
 .navbar-link:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--bg-muted);
+  color: var(--text-primary);
 }
 
 .navbar-btn {
@@ -60,7 +61,7 @@
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 8px;
   transition: background 0.2s, color 0.2s;
@@ -68,19 +69,18 @@
 }
 
 .navbar-btn:hover {
-  background: #f1f5f9;
-  color: #b91c1c;
+  background: var(--bg-muted);
+  color: var(--danger);
 }
 
 .navbar-btn--primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: var(--accent-gradient);
   color: white;
   font-weight: 600;
   padding: 8px 18px;
 }
 
 .navbar-btn--primary:hover {
-  background: linear-gradient(135deg, #4338ca, #4f46e5);
   color: white;
 }
 

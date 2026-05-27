@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 import Navbar from './components/Navbar';
 import HomePage from './components/HomePage';
 import FAQPage from './components/FAQPage';
@@ -15,19 +17,22 @@ import './App.css';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/community" element={<OAQPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-        </Routes>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/community" element={<OAQPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
+          </Routes>
+          <ThemeToggle />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

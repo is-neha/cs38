@@ -56,7 +56,7 @@
 .faq-badge {
   display: inline-block;
   background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-  color: #4f46e5;
+  color: var(--accent);
   padding: 6px 18px;
   border-radius: 20px;
   font-size: 0.82rem;
@@ -70,7 +70,7 @@
   font-size: 2.8rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 14px;
   line-height: 1.12;
   animation: fadeSlideIn 0.5s 0.1s ease both;
@@ -85,7 +85,7 @@
 
 .faq-subtitle {
   font-size: 1.1rem;
-  color: #64748b;
+  color: var(--text-muted);
   line-height: 1.65;
   max-width: 580px;
   margin: 0 auto;
@@ -93,7 +93,7 @@
 }
 
 .faq-contact-link {
-  color: #4f46e5;
+  color: var(--accent);
   text-decoration: none;
   font-weight: 600;
   border-bottom: 1.5px solid transparent;
@@ -101,7 +101,7 @@
 }
 
 .faq-contact-link:hover {
-  border-color: #4f46e5;
+  border-color: var(--accent);
 }
 
 /* ---- Search bar ---- */
@@ -124,32 +124,32 @@
   transform: translateY(-50%);
   width: 20px;
   height: 20px;
-  color: #94a3b8;
+  color: var(--text-light);
   pointer-events: none;
 }
 
 .faq-search-input {
   width: 100%;
   padding: 18px 54px 18px 58px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border);
   border-radius: 16px;
   font-size: 1.05rem;
   font-family: inherit;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
-  color: #1e293b;
+  color: var(--text-secondary);
   transition: all 0.3s;
   outline: none;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-md);
 }
 
 .faq-search-input::placeholder {
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .faq-search-input:focus {
   border-color: #818cf8;
-  background: white;
+  background: var(--bg-card);
   box-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
 }
 
@@ -158,7 +158,7 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  background: #f1f5f9;
+  background: var(--bg-muted);
   border: none;
   border-radius: 10px;
   width: 34px;
@@ -167,7 +167,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-muted);
   transition: background 0.2s, transform 0.2s;
 }
 
@@ -204,7 +204,7 @@
 }
 
 .faq-loader__card {
-  background: #f8fafc;
+  background: var(--bg-card-hover);
   border-radius: 16px;
   padding: 20px;
 }
@@ -240,7 +240,7 @@
   width: 72px;
   height: 72px;
   margin: 0 auto 18px;
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .faq-empty-icon svg {
@@ -250,17 +250,17 @@
 
 .faq-empty h3 {
   font-size: 1.3rem;
-  color: #1e293b;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .faq-empty p {
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 24px;
 }
 
 .faq-empty-btn {
-  background: #4f46e5;
+  background: var(--accent);
   color: white;
   border: none;
   padding: 12px 28px;
@@ -279,7 +279,7 @@
 
 .faq-results-count {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 20px;
   font-weight: 500;
   display: flex;
@@ -292,7 +292,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #4f46e5;
+  background: var(--accent);
   flex-shrink: 0;
 }
 
@@ -305,10 +305,10 @@
 }
 
 .faq-category-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   animation: cardIn 0.45s ease both;
@@ -317,7 +317,7 @@
 
 .faq-category-card:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -404,13 +404,13 @@
   text-align: center;
   margin-top: 56px;
   padding-top: 36px;
-  border-top: 1px solid #e2e8f0;
-  color: #64748b;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
 .faq-footer a {
-  color: #4f46e5;
+  color: var(--accent);
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;

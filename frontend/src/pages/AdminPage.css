@@ -18,13 +18,13 @@
 .admin-title {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .admin-subtitle {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* ---- Tabs ---- */
@@ -32,7 +32,7 @@
 .admin-tabs {
   display: flex;
   gap: 4px;
-  background: #f1f5f9;
+  background: var(--bg-muted);
   border-radius: 10px;
   padding: 4px;
   margin-bottom: 20px;
@@ -47,20 +47,20 @@
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .admin-tab--active {
-  background: white;
-  color: #0f172a;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-loader, .admin-empty {
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-light);
   padding: 40px;
   font-size: 0.95rem;
 }
@@ -74,8 +74,8 @@
 }
 
 .admin-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 20px;
 }
@@ -95,12 +95,12 @@
 }
 
 .admin-vote-count {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 
 .admin-answer-count {
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .admin-card__actions {
@@ -123,20 +123,20 @@
   transform: translateY(-1px);
 }
 
-.admin-btn--approve { background: #dcfce7; color: #166534; }
+.admin-btn--approve { background: var(--success-bg); color: var(--success); }
 .admin-btn--approve:hover { background: #bbf7d0; }
-.admin-btn--reject { background: #fef2f2; color: #991b1b; }
+.admin-btn--reject { background: var(--danger-bg); color: var(--danger); }
 .admin-btn--reject:hover { background: #fee2e2; }
-.admin-btn--promote { background: #eef2ff; color: #4f46e5; }
+.admin-btn--promote { background: var(--accent-light); color: var(--accent); }
 .admin-btn--promote:hover:not(.disabled) { background: #e0e7ff; }
 .admin-btn--promote.disabled { opacity: 0.4; cursor: not-allowed; }
-.admin-btn--text { background: none; border: none; padding: 0; color: #4f46e5; cursor: pointer; font-size: 0.78rem; font-weight: 600; }
+.admin-btn--text { background: none; border: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 0.78rem; font-weight: 600; }
 .admin-btn--text:hover { text-decoration: underline; }
 
 .admin-card__question {
   font-size: 1rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 4px;
   line-height: 1.4;
 }
@@ -145,19 +145,19 @@
   display: flex;
   gap: 12px;
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--text-light);
   margin-bottom: 12px;
 }
 
 .admin-hint {
-  color: #f59e0b;
+  color: var(--warning);
   font-weight: 500;
 }
 
 /* ---- Answers in admin ---- */
 
 .admin-answers {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border);
   padding-top: 10px;
 }
 
@@ -180,7 +180,7 @@
   display: flex;
   gap: 10px;
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-light);
   align-items: center;
 }
 
@@ -211,7 +211,7 @@
 }
 
 .admin-accepted-badge {
-  color: #22c55e;
+  color: var(--success);
   font-weight: 700;
   font-size: 0.75rem;
 }
