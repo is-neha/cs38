@@ -132,20 +132,38 @@ router.post('/:id/answers', auth, async (req, res) => {
   }
 });
 
-/* ── Vote on OAQ (testing mode: unlimited, no dedup) ── */
+/* ── Vote on OAQ ── */
 router.post('/:id/vote', auth, async (req, res) => {
   try {
     const { value } = req.body;
     if (![1, -1].includes(value)) return res.status(400).json({ error: 'Value must be 1 or -1' });
 
     const userId = req.user._id;
+    const oaq = await OAQ.findById(req.params.id);
+    if (!oaq) return res.status(404).json({ error: 'Not found' });
+
+    const alreadyUp = oaq.votedUpBy.some(id => id.equals(userId));
+    const alreadyDown = oaq.votedDownBy.some(id => id.equals(userId));
+
     if (value === 1) {
-      await OAQ.findByIdAndUpdate(req.params.id, { $push: { votedUpBy: userId } });
+      if (alreadyUp) {
+        oaq.votedUpBy.pull(userId);
+      } else {
+        if (alreadyDown) oaq.votedDownBy.pull(userId);
+        oaq.votedUpBy.push(userId);
+      }
     } else {
-      await OAQ.findByIdAndUpdate(req.params.id, { $push: { votedDownBy: userId } });
+      if (alreadyDown) {
+        oaq.votedDownBy.pull(userId);
+      } else {
+        if (alreadyUp) oaq.votedUpBy.pull(userId);
+        oaq.votedDownBy.push(userId);
+      }
     }
 
-    const updated = await OAQ.findById(req.params.id)
+    await oaq.save();
+
+    const updated = await OAQ.findById(oaq._id)
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     res.json(updated);
@@ -154,26 +172,41 @@ router.post('/:id/vote', auth, async (req, res) => {
   }
 });
 
-/* ── Vote on Answer (testing mode: unlimited, no dedup) ── */
+/* ── Vote on Answer ── */
 router.post('/:id/answers/:answerId/vote', auth, async (req, res) => {
   try {
     const { value } = req.body;
     if (![1, -1].includes(value)) return res.status(400).json({ error: 'Value must be 1 or -1' });
 
     const userId = req.user._id;
+    const oaq = await OAQ.findById(req.params.id);
+    if (!oaq) return res.status(404).json({ error: 'Not found' });
+
+    const answer = oaq.answers.id(req.params.answerId);
+    if (!answer) return res.status(404).json({ error: 'Answer not found' });
+
+    const alreadyUp = answer.votedUpBy.some(id => id.equals(userId));
+    const alreadyDown = answer.votedDownBy.some(id => id.equals(userId));
+
     if (value === 1) {
-      await OAQ.findOneAndUpdate(
-        { _id: req.params.id, 'answers._id': req.params.answerId },
-        { $push: { 'answers.$.votedUpBy': userId } },
-      );
+      if (alreadyUp) {
+        answer.votedUpBy.pull(userId);
+      } else {
+        if (alreadyDown) answer.votedDownBy.pull(userId);
+        answer.votedUpBy.push(userId);
+      }
     } else {
-      await OAQ.findOneAndUpdate(
-        { _id: req.params.id, 'answers._id': req.params.answerId },
-        { $push: { 'answers.$.votedDownBy': userId } },
-      );
+      if (alreadyDown) {
+        answer.votedDownBy.pull(userId);
+      } else {
+        if (alreadyUp) answer.votedUpBy.pull(userId);
+        answer.votedDownBy.push(userId);
+      }
     }
 
-    const updated = await OAQ.findById(req.params.id)
+    await oaq.save();
+
+    const updated = await OAQ.findById(oaq._id)
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     res.json(updated);
