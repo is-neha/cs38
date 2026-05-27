@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const FAQ = require('./models/FAQ');
+const authRoutes = require('./routes/auth');
+const { auth } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +16,8 @@ mongoose.connect(MONGO_URI)
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 app.get('/api/faqs', async (req, res) => {
   try {
@@ -48,6 +52,25 @@ app.get('/api/faqs/search', async (req, res) => {
     })).filter(cat => cat.questions.length > 0);
 
     res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/dashboard', auth, async (req, res) => {
+  try {
+    const totalFaqs = await FAQ.aggregate([
+      { $unwind: '$questions' },
+      { $count: 'total' },
+    ]);
+    const categories = await FAQ.countDocuments();
+    res.json({
+      user: req.user,
+      stats: {
+        categories,
+        questions: totalFaqs[0]?.total || 0,
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
