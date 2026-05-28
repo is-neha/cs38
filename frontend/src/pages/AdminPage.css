@@ -259,3 +259,76 @@
   background: var(--danger);
   color: #fff;
 }
+
+.admin-btn--ai {
+  background: #1e293b;
+  color: #a78bfa;
+  border: 1.5px solid #6366f1;
+  font-size: 0.78rem;
+}
+
+.admin-btn--ai:hover:not(:disabled) {
+  background: #374151;
+  color: #c4b5fd;
+}
+
+.admin-btn--ai:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-ai-result {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #1e1b4b;
+  border: 1px solid #6366f1;
+  border-radius: 10px;
+}
+
+.admin-ai-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #a78bfa;
+  margin-bottom: 6px;
+}
+
+.admin-ai-text {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.admin-ai-best {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.admin-ai-error {
+  font-size: 0.85rem;
+  color: var(--danger);
+  margin: 0;
+}
+
+[data-theme="light"] .admin-ai-result {
+  background: #eef2ff;
+  border-color: #a5b4fc;
+}
+
+[data-theme="light"] .admin-ai-header {
+  color: #6366f1;
+}
+
+[data-theme="light"] .admin-btn--ai {
+  background: #f0f4ff;
+  color: #6366f1;
+  border-color: #a5b4fc;
+}
+
+[data-theme="light"] .admin-btn--ai:hover:not(:disabled) {
+  background: #e0e7ff;
+  color: #4f46e5;
+}

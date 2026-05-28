@@ -21,6 +21,8 @@ function AdminPage() {
   const [editText, setEditText] = useState('');
   const [reports, setReports] = useState([]);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(null);
+  const [aiResult, setAiResult] = useState({});
 
   useEffect(() => {
     if (user && user.role !== 'admin') navigate('/');
@@ -101,6 +103,26 @@ function AdminPage() {
     if (res.ok) fetchOaqs();
   };
 
+  const handleAiSummarize = async oaqId => {
+    setAiLoading(oaqId);
+    setAiResult(prev => ({ ...prev, [oaqId]: null }));
+    try {
+      const res = await fetch(`/api/ai/summarize/${oaqId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiResult(prev => ({ ...prev, [oaqId]: data }));
+      } else {
+        const err = await res.json();
+        setAiResult(prev => ({ ...prev, [oaqId]: { error: err.error || 'Failed' } }));
+      }
+    } catch {
+      setAiResult(prev => ({ ...prev, [oaqId]: { error: 'Request failed' } }));
+    }
+    setAiLoading(null);
+  };
+
   if (!user || user.role !== 'admin') return null;
 
   return (
@@ -169,6 +191,15 @@ function AdminPage() {
                       {oaq.upvotes}↑ {oaq.downvotes}↓
                     </span>
                     {oaq.answers.length > 0 && <span className="admin-answer-count">{oaq.answers.length} answers</span>}
+                    {oaq.answers.length > 0 && (
+                      <button
+                        className="admin-btn admin-btn--ai"
+                        onClick={() => handleAiSummarize(oaq._id)}
+                        disabled={aiLoading === oaq._id}
+                      >
+                        {aiLoading === oaq._id ? 'Analyzing…' : 'AI Summarize'}
+                      </button>
+                    )}
                   </div>
                   <div className="admin-card__actions">
                     {activeTab === 'open' && (
@@ -228,6 +259,25 @@ function AdminPage() {
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {aiResult[oaq._id] && (
+                  <div className="admin-ai-result">
+                    {aiResult[oaq._id].error ? (
+                      <p className="admin-ai-error">{aiResult[oaq._id].error}</p>
+                    ) : (
+                      <>
+                        <div className="admin-ai-header">AI Analysis</div>
+                        <p className="admin-ai-text">{aiResult[oaq._id].summary}</p>
+                        {aiResult[oaq._id].bestAnswerIndex >= 0 && (
+                          <p className="admin-ai-best">
+                            Best answer: <strong>#{aiResult[oaq._id].bestAnswerIndex + 1}</strong>
+                            {aiResult[oaq._id].reason && <span> — {aiResult[oaq._id].reason}</span>}
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
