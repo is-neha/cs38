@@ -277,7 +277,10 @@ app.get('/api/ai/related', async (req, res) => {
     const query = req.query.q?.toLowerCase() || '';
     if (!query || query.length < 2) return res.json({ faq: [], oaq: [] });
 
-    const words = query.split(/\s+/).filter(w => w.length > 2);
+    const stopWords = new Set(['what', 'how', 'why', 'when', 'where', 'which', 'who', 'whom', 'whose', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'do', 'does', 'did', 'done', 'doing', 'is', 'am', 'are', 'was', 'were', 'be', 'being', 'been', 'has', 'have', 'had', 'get', 'gets', 'got', 'use', 'used', 'using', 'make', 'makes', 'made', 'need', 'needs', 'needed']);
+    const words = query.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+    if (words.length === 0) return res.json({ faq: [], oaq: [] });
+
     const wordRegexes = words.map(w => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
 
     const [faqMatches, oaqMatches] = await Promise.all([
