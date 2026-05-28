@@ -143,14 +143,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--accent);
-  color: #fff;
+  background: #fff;
+  color: var(--accent);
   border: none;
   border-radius: 14px;
   padding: 0 22px;
   font-family: inherit;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
@@ -158,13 +158,23 @@
 }
 
 .home-ask-btn:hover {
-  background: #6366f1;
+  background: #f0f4ff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
 .home-ask-btn:active {
   transform: translateY(0);
+}
+
+[data-theme="dark"] .home-ask-btn {
+  background: var(--accent);
+  color: #fff;
+}
+
+[data-theme="dark"] .home-ask-btn:hover {
+  background: #6366f1;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
 .home-search-mic {
