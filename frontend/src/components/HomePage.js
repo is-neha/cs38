@@ -12,10 +12,43 @@ function HomePage() {
   const [suggestions, setSuggestions] = useState([]);
   const [openItems, setOpenItems] = useState({});
   const [activeTab, setActiveTab] = useState('all');
+  const [listening, setListening] = useState(false);
   const searchTimer = useRef(null);
   const suggestTimer = useRef(null);
   const searchInputRef = useRef(null);
   const gridRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micSupported = !!SpeechRecognition;
+
+  /* ── Voice search ── */
+  const toggleListening = useCallback(() => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    if (!SpeechRecognition) return;
+    const rec = new SpeechRecognition();
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      setSearchQuery(text);
+      setListening(false);
+      doSearch(text);
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    rec.start();
+    recognitionRef.current = rec;
+    setListening(true);
+  }, [listening, SpeechRecognition]);
+
+  useEffect(() => {
+    return () => recognitionRef.current?.abort();
+  }, []);
 
   useEffect(() => {
     fetch('/api/home')
@@ -146,6 +179,20 @@ function HomePage() {
                 onChange={e => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && fetch(`/api/search/suggest?q=${encodeURIComponent(searchQuery)}`).then(r => r.json()).then(setSuggestions).catch(() => {})}
               />
+              {micSupported && (
+                <button
+                  className={`home-search-mic ${listening ? 'home-search-mic--active' : ''}`}
+                  onClick={toggleListening}
+                  title={listening ? 'Stop listening' : 'Search by voice'}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                </button>
+              )}
               {searchQuery && (
                 <button className="home-search-clear" onClick={() => { setSearchQuery(''); setSearchResults(null); setSuggestions([]); }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>

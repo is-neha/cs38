@@ -172,13 +172,52 @@
 }
 
 .faq-search-clear:hover {
-  background: #e2e8f0;
+  background: var(--bg-card-hover);
   transform: translateY(-50%) scale(1.05);
 }
 
 .faq-search-clear svg {
   width: 18px;
   height: 18px;
+}
+
+.faq-search-mic {
+  position: absolute;
+  right: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.faq-search-mic:hover {
+  color: var(--accent);
+  background: var(--bg-muted);
+}
+
+.faq-search-mic svg {
+  width: 18px;
+  height: 18px;
+}
+
+.faq-search-mic--active {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  animation: faq-mic-pulse 1s ease-in-out infinite;
+}
+
+@keyframes faq-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 
 /* ---- Loading skeleton ---- */
