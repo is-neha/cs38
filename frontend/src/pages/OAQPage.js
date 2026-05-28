@@ -25,6 +25,10 @@ function OAQPage() {
   const [newAnswer, setNewAnswer] = useState('');
   const [related, setRelated] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [reportTarget, setReportTarget] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [notification, setNotification] = useState('');
 
   const fetchOaqs = useCallback(() => {
     setLoading(true);
@@ -137,6 +141,35 @@ function OAQPage() {
       const updated = await res.json();
       setOaqs(prev => prev.map(o => o._id === updated._id ? updated : o));
     }
+  };
+
+  const handleReport = async () => {
+    if (!user) return navigate('/login');
+    if (!reportReason.trim()) return;
+    setReportSubmitting(true);
+    try {
+      const res = await authFetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetType: reportTarget.type,
+          targetId: reportTarget.id,
+          oaqId: reportTarget.oaqId,
+          reason: reportReason,
+        }),
+      });
+      if (res.ok) {
+        setNotification('Report submitted. Thank you.');
+        setReportTarget(null);
+        setReportReason('');
+      } else {
+        const data = await res.json();
+        setNotification(data.error || 'Failed to submit report');
+      }
+    } catch {
+      setNotification('Failed to submit report');
+    }
+    setReportSubmitting(false);
   };
 
   const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -256,6 +289,19 @@ function OAQPage() {
                     <span>{formatDate(oaq.createdAt)}</span>
                     <span>{oaq.views || 0} view{(oaq.views || 0) !== 1 ? 's' : ''}</span>
                     <span>{oaq.answers.length} answer{oaq.answers.length !== 1 ? 's' : ''}</span>
+                    {user && (
+                      <button
+                        className="oaq-report-btn"
+                        onClick={() => setReportTarget({ type: 'question', id: oaq._id, oaqId: oaq._id })}
+                        title="Report this question"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                          <line x1="4" y1="22" x2="4" y2="15" />
+                        </svg>
+                        Report
+                      </button>
+                    )}
                   </div>
                   <button className="oaq-card__expand" onClick={() => toggleExpand(oaq._id)}>
                     {expandedId === oaq._id ? 'Hide answers' : `View ${oaq.answers.length} answer${oaq.answers.length !== 1 ? 's' : ''}`}
@@ -287,6 +333,19 @@ function OAQPage() {
                               <span>{ans.submittedBy?.name || 'Anonymous'}</span>
                               <span>{formatDate(ans.createdAt)}</span>
                               {ans.accepted && <span className="oaq-answer__accepted-badge">✓ Accepted</span>}
+                              {user && (
+                                <button
+                                  className="oaq-report-btn oaq-report-btn--sm"
+                                  onClick={() => setReportTarget({ type: 'answer', id: ans._id, oaqId: oaq._id })}
+                                  title="Report this answer"
+                                >
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
+                                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                                    <line x1="4" y1="22" x2="4" y2="15" />
+                                  </svg>
+                                  Report
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -331,6 +390,39 @@ function OAQPage() {
           </div>
         )}
       </div>
+
+      {/* Report modal */}
+      {reportTarget && (
+        <div className="oaq-report-overlay" onClick={() => { setReportTarget(null); setReportReason(''); }}>
+          <div className="oaq-report-modal" onClick={e => e.stopPropagation()}>
+            <h3 className="oaq-report-modal__title">Report {reportTarget.type}</h3>
+            <textarea
+              className="oaq-textarea"
+              placeholder="Why are you reporting this? (required)"
+              value={reportReason}
+              onChange={e => setReportReason(e.target.value)}
+              rows={3}
+              autoFocus
+            />
+            <div className="oaq-report-modal__actions">
+              <button className="oaq-btn oaq-btn--ghost" onClick={() => { setReportTarget(null); setReportReason(''); }}>Cancel</button>
+              <button
+                className="oaq-btn oaq-btn--primary"
+                onClick={handleReport}
+                disabled={!reportReason.trim() || reportSubmitting}
+              >
+                {reportSubmitting ? 'Submitting…' : 'Submit report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notification && (
+        <div className="oaq-toast" onClick={() => setNotification('')}>
+          {notification}
+        </div>
+      )}
     </div>
   );
 }

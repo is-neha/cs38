@@ -8,6 +8,7 @@ const TABS = [
   { key: 'approved', label: 'Approved' },
   { key: 'promoted', label: 'Promoted' },
   { key: 'rejected', label: 'Rejected' },
+  { key: 'reports', label: 'Reports' },
 ];
 
 function AdminPage() {
@@ -18,6 +19,8 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState('open');
   const [editAnswer, setEditAnswer] = useState(null);
   const [editText, setEditText] = useState('');
+  const [reports, setReports] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
 
   useEffect(() => {
     if (user && user.role !== 'admin') navigate('/');
@@ -25,6 +28,16 @@ function AdminPage() {
   }, [user]);
 
   const fetchOaqs = useCallback(() => {
+    if (activeTab === 'reports') {
+      setReportsLoading(true);
+      fetch('/api/reports', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      })
+        .then(res => res.json())
+        .then(data => { setReports(data); setReportsLoading(false); })
+        .catch(() => setReportsLoading(false));
+      return;
+    }
     setLoading(true);
     fetch(`/api/oaq?status=${activeTab}`)
       .then(res => res.json())
@@ -68,6 +81,26 @@ function AdminPage() {
 
   const canPromote = oaq => oaq.netVotes >= 10;
 
+  const handleReportAction = async (id, action) => {
+    const res = await fetch(`/api/reports/${id}/resolve`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ action }),
+    });
+    if (res.ok) fetchOaqs();
+  };
+
+  const handleDeleteReported = async id => {
+    const res = await fetch(`/api/reports/${id}/content`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+    if (res.ok) fetchOaqs();
+  };
+
   if (!user || user.role !== 'admin') return null;
 
   return (
@@ -90,7 +123,39 @@ function AdminPage() {
           ))}
         </div>
 
-        {loading ? (
+        {activeTab === 'reports' ? (
+          reportsLoading ? (
+            <div className="admin-loader">Loading reports…</div>
+          ) : reports.length === 0 ? (
+            <div className="admin-empty">No reports.</div>
+          ) : (
+            <div className="admin-list">
+              {reports.map(r => (
+                <div key={r._id} className="admin-card">
+                  <div className="admin-card__header">
+                    <span className={`admin-report-status admin-report-status--${r.status}`}>{r.status}</span>
+                    <span className="admin-report-type">{r.targetType}</span>
+                    <div className="admin-card__actions">
+                      {r.status === 'pending' && (
+                        <>
+                          <button className="admin-btn admin-btn--approve" onClick={() => handleReportAction(r._id, 'resolved')}>Resolve</button>
+                          <button className="admin-btn admin-btn--reject" onClick={() => handleReportAction(r._id, 'dismissed')}>Dismiss</button>
+                          <button className="admin-btn admin-btn--danger" onClick={() => handleDeleteReported(r._id)}>Delete content</button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 14, color: 'var(--text-primary)', margin: '8px 0' }}>"{r.reason}"</p>
+                  <div className="admin-card__meta">
+                    <span>Reported by {r.reportedBy?.name || 'Unknown'}</span>
+                    <span>{formatDate(r.createdAt)}</span>
+                    {r.resolvedBy && <span>Resolved by {r.resolvedBy.name}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : loading ? (
           <div className="admin-loader">Loading…</div>
         ) : oaqs.length === 0 ? (
           <div className="admin-empty">No {activeTab} questions.</div>

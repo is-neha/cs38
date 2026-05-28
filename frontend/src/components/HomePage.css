@@ -75,13 +75,17 @@
 
 /* ── Search ── */
 .home-search-wrapper {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
   position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
 }
 
 .home-search {
   display: flex;
+  flex: 1;
   align-items: center;
   background: var(--bg-card);
   border-radius: 14px;
@@ -133,6 +137,33 @@
 .home-search-clear svg {
   width: 16px;
   height: 16px;
+}
+
+.home-ask-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 0 20px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.home-ask-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.home-ask-btn:active {
+  transform: translateY(0);
 }
 
 .home-search-mic {

@@ -7,6 +7,7 @@ const OAQ = require('./models/OAQ');
 const authRoutes = require('./routes/auth');
 const oaqRoutes = require('./routes/oaq');
 const notificationRoutes = require('./routes/notifications');
+const reportRoutes = require('./routes/reports');
 const { auth } = require('./middleware/auth');
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/oaq', oaqRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
 
 /* ── FAQ listing ── */
 app.get('/api/faqs', async (req, res) => {

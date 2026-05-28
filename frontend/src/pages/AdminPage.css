@@ -215,3 +215,47 @@
   font-weight: 700;
   font-size: 0.75rem;
 }
+
+.admin-report-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.admin-report-status--pending {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.admin-report-status--resolved {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.admin-report-status--dismissed {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.admin-report-type {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.admin-btn--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+}
+
+.admin-btn--danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
