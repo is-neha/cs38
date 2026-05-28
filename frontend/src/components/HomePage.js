@@ -13,6 +13,8 @@ function HomePage() {
   const [openItems, setOpenItems] = useState({});
   const [activeTab, setActiveTab] = useState('all');
   const [listening, setListening] = useState(false);
+  const [selectedCat, setSelectedCat] = useState(null);
+  const [flipping, setFlipping] = useState(null);
   const searchTimer = useRef(null);
   const suggestTimer = useRef(null);
   const searchInputRef = useRef(null);
@@ -287,9 +289,15 @@ function HomePage() {
               {homeData.categoryCards.map((cat, i) => (
                 <div
                   key={cat._id}
-                  className="home-category-card"
+                  className={`home-category-card ${flipping === cat._id ? 'home-category-card--flip' : ''}`}
                   style={{ animationDelay: `${i * 0.05}s` }}
-                  onClick={() => navigate('/faq')}
+                  onClick={() => {
+                    setFlipping(cat._id);
+                    setTimeout(() => {
+                      setFlipping(null);
+                      setSelectedCat(cat);
+                    }, 300);
+                  }}
                 >
                   <div className="home-category-card__icon">{cat.icon}</div>
                   <div className="home-category-card__name">{cat.category}</div>
@@ -349,6 +357,42 @@ function HomePage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Category modal */}
+        {selectedCat && (
+          <div className="home-cat-overlay" onClick={() => setSelectedCat(null)}>
+            <div className="home-cat-modal" onClick={e => e.stopPropagation()}>
+              <button className="home-cat-close" onClick={() => setSelectedCat(null)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+              <div className="home-cat-modal__header">
+                <span className="home-cat-modal__icon">{selectedCat.icon}</span>
+                <h2 className="home-cat-modal__title">{selectedCat.category}</h2>
+                <span className="home-cat-modal__count">{selectedCat.count} question{selectedCat.count !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="home-cat-modal__body">
+                {selectedCat.questions.length === 0 ? (
+                  <p className="home-cat-modal__empty">No questions in this category yet.</p>
+                ) : (
+                  <div className="home-cat-questions">
+                    {selectedCat.questions.map((item, idx) => (
+                      <div key={item._id} className="home-cat-question">
+                        <span className="home-cat-question__num">{idx + 1}</span>
+                        <span className="home-cat-question__text">{item.q}</span>
+                        <span className="home-cat-question__views">{item.views || 0} views</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="home-cat-modal__footer">
+                <button className="home-cat-modal__btn" onClick={() => { setSelectedCat(null); navigate('/faq'); }}>
+                  View all in FAQ
+                </button>
+              </div>
             </div>
           </div>
         )}
