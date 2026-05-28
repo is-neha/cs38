@@ -23,8 +23,8 @@ function AdminPage() {
   const [reportsLoading, setReportsLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(null);
   const [aiResult, setAiResult] = useState({});
-  const [aiCheck, setAiCheck] = useState(null);
-  const [aiCheckLoading, setAiCheckLoading] = useState(false);
+  const [aiCheck, setAiCheck] = useState({});
+  const [aiCheckLoading, setAiCheckLoading] = useState(null);
 
   useEffect(() => {
     if (user && user.role !== 'admin') navigate('/');
@@ -128,7 +128,7 @@ function AdminPage() {
 
   const handleAiCheck = async oaqId => {
     setAiCheckLoading(oaqId);
-    setAiCheck(null);
+    setAiCheck(prev => ({ ...prev, [oaqId]: { loading: true } }));
     try {
       const res = await fetch(`/api/ai/check-question/${oaqId}`, {
         method: 'POST',
@@ -136,9 +136,8 @@ function AdminPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setAiCheck(data);
+        setAiCheck(prev => ({ ...prev, [oaqId]: data }));
         if (!data.relevant) {
-          /* auto-report as spam */
           await fetch('/api/reports', {
             method: 'POST',
             headers: {
@@ -155,10 +154,10 @@ function AdminPage() {
         }
       } else {
         const err = await res.json();
-        setAiCheck({ relevant: true, error: err.error || 'Check failed', reason: '' });
+        setAiCheck(prev => ({ ...prev, [oaqId]: { relevant: true, error: err.error || 'Check failed' } }));
       }
     } catch {
-      setAiCheck({ relevant: true, error: 'Request failed', reason: '' });
+      setAiCheck(prev => ({ ...prev, [oaqId]: { relevant: true, error: 'Request failed' } }));
     }
     setAiCheckLoading(null);
   };
@@ -231,13 +230,15 @@ function AdminPage() {
                       {oaq.upvotes}↑ {oaq.downvotes}↓
                     </span>
                     {oaq.answers.length > 0 && <span className="admin-answer-count">{oaq.answers.length} answers</span>}
-                    <button
-                      className="admin-btn admin-btn--ai"
-                      onClick={() => handleAiSummarize(oaq._id)}
-                      disabled={aiLoading === oaq._id}
-                    >
-                      {aiLoading === oaq._id ? 'Analyzing…' : 'AI Summarize'}
-                    </button>
+                    {activeTab !== 'open' && (
+                      <button
+                        className="admin-btn admin-btn--ai"
+                        onClick={() => handleAiSummarize(oaq._id)}
+                        disabled={aiLoading === oaq._id}
+                      >
+                        {aiLoading === oaq._id ? 'Analyzing…' : 'AI Summarize'}
+                      </button>
+                    )}
                     <button
                       className="admin-btn admin-btn--ai-check"
                       onClick={() => handleAiCheck(oaq._id)}
@@ -307,22 +308,22 @@ function AdminPage() {
                   </div>
                 )}
 
-                {aiCheck && aiCheck.error && (
+                {aiCheck[oaq._id]?.error && (
                   <div className="admin-ai-result" style={{ borderColor: 'var(--warning)', marginTop: 8 }}>
                     <div className="admin-ai-header">AI Check</div>
-                    <p className="admin-ai-text" style={{ color: 'var(--warning)' }}>{aiCheck.error}</p>
+                    <p className="admin-ai-text" style={{ color: 'var(--warning)' }}>{aiCheck[oaq._id].error}</p>
                   </div>
                 )}
-                {aiCheck && !aiCheck.error && (
-                  <div className={`admin-ai-result ${aiCheck.relevant ? '' : 'admin-ai-result--spam'}`} style={{ marginTop: 8 }}>
+                {aiCheck[oaq._id] && !aiCheck[oaq._id].error && !aiCheck[oaq._id].loading && (
+                  <div className={`admin-ai-result ${aiCheck[oaq._id].relevant ? '' : 'admin-ai-result--spam'}`} style={{ marginTop: 8 }}>
                     <div className="admin-ai-header">AI Check</div>
                     <p className="admin-ai-text">
-                      {aiCheck.relevant
+                      {aiCheck[oaq._id].relevant
                         ? '✅ This question appears relevant to the internship.'
                         : '🚩 This may be unrelated or spam.'}
                     </p>
-                    {aiCheck.reason && <p className="admin-ai-best">{aiCheck.reason}</p>}
-                    {!aiCheck.relevant && (
+                    {aiCheck[oaq._id].reason && <p className="admin-ai-best">{aiCheck[oaq._id].reason}</p>}
+                    {!aiCheck[oaq._id].relevant && (
                       <p className="admin-ai-best" style={{ color: 'var(--danger)', marginTop: 4 }}>
                         A report has been auto-created.
                       </p>
