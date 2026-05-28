@@ -180,12 +180,13 @@ router.post('/:id/vote', auth, async (req, res) => {
         oaq.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
       const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
-      let communityCat = await FAQ.findOne({ category: 'Community Questions' });
-      if (!communityCat) {
-        communityCat = await FAQ.create({ category: 'Community Questions', icon: '🌐', questions: [] });
+      const catName = oaq.category || 'Community Questions';
+      let targetCat = await FAQ.findOne({ category: catName });
+      if (!targetCat) {
+        targetCat = await FAQ.create({ category: catName, icon: '🌐', questions: [] });
       }
-      communityCat.questions.push({ q: oaq.question, a: answerText, source: 'community', resolved: true });
-      await communityCat.save();
+      targetCat.questions.push({ q: oaq.question, a: answerText, source: 'community', resolved: true });
+      await targetCat.save();
 
       oaq.status = 'promoted';
       oaq.promotedCount = (oaq.promotedCount || 0) + 1;
@@ -303,22 +304,19 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
     const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
-    let communityCat = await FAQ.findOne({ category: 'Community Questions' });
-    if (!communityCat) {
-      communityCat = await FAQ.create({
-        category: 'Community Questions',
-        icon: '🌐',
-        questions: [],
-      });
+    const catName = oaq.category || 'Community Questions';
+    let targetCat = await FAQ.findOne({ category: catName });
+    if (!targetCat) {
+      targetCat = await FAQ.create({ category: catName, icon: '🌐', questions: [] });
     }
 
-    communityCat.questions.push({
+    targetCat.questions.push({
       q: oaq.question,
       a: answerText,
       source: 'community',
       resolved: true,
     });
-    await communityCat.save();
+    await targetCat.save();
 
     oaq.status = 'promoted';
     oaq.promotedCount = (oaq.promotedCount || 0) + 1;

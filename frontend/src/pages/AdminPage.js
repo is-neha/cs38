@@ -179,11 +179,7 @@ function AdminPage() {
                     )}
                     {activeTab === 'approved' && (
                       <>
-                        <button
-                          className={`admin-btn admin-btn--promote ${!canPromote(oaq) ? 'disabled' : ''}`}
-                          onClick={() => canPromote(oaq) && handlePromote(oaq._id)}
-                          title={!canPromote(oaq) ? 'Needs 10+ votes to promote' : 'Promote to FAQ'}
-                        >
+                        <button className="admin-btn admin-btn--promote" onClick={() => handlePromote(oaq._id)}>
                           Promote to FAQ
                         </button>
                         <button className="admin-btn admin-btn--reject" onClick={() => handleReject(oaq._id)}>Reject</button>
@@ -196,9 +192,6 @@ function AdminPage() {
                 <div className="admin-card__meta">
                   <span>by {oaq.submittedBy?.name || 'Anonymous'}</span>
                   <span>{formatDate(oaq.createdAt)}</span>
-                  {!canPromote(oaq) && activeTab === 'approved' && (
-                    <span className="admin-hint">Needs {10 - oaq.netVotes} more votes to promote</span>
-                  )}
                 </div>
 
                 {oaq.answers.length > 0 && (
