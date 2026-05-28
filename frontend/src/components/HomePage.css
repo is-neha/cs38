@@ -91,6 +91,7 @@
   border-radius: 14px;
   padding: 0 18px;
   box-shadow: var(--shadow-lg);
+  transition: background 0.3s, box-shadow 0.3s;
 }
 
 .home-search-icon {
@@ -153,7 +154,7 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: background 0.3s, box-shadow 0.3s, color 0.3s, transform 0.2s;
   flex-shrink: 0;
 }
 
