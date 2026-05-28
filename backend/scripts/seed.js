@@ -164,6 +164,20 @@ const seedData = [
       { q: 'Does ViBe record long videos of me?', a: 'No — ViBe does not continuously record. Camera and microphone are used for real-time presence checks only. No long recordings are stored.' },
     ],
   },
+  {
+    category: 'Team Formation',
+    icon: '👥',
+    questions: [
+      { q: 'Is team formation compulsory?', a: 'Yes, it is compulsory. Teams are formed during the first week of the internship through a dedicated activity session.' },
+      { q: 'What is the size of a team?', a: 'Teams typically consist of 3–4 members. The exact size may vary depending on the total cohort size and project requirements.' },
+      { q: 'How are teams formed?', a: 'Teams are formed by interns themselves during a dedicated team-formation activity. You will get to interact with other interns and choose your teammates.' },
+      { q: 'I started on May 15/16 but couldn\'t form a team during the activity. What happens now?', a: 'Don\'t worry — you will be manually assigned to a team by the coordinators based on your project preferences and availability.' },
+      { q: 'What if a team member leaves or becomes ineligible during Phase 1?', a: 'Notify your mentor immediately. Depending on the situation, your team may be merged with another or you may be assigned a new teammate.' },
+      { q: 'Can I form a team with someone from my own college?', a: 'Yes, as long as you both meet the eligibility criteria and are in the same cohort.' },
+      { q: 'When will I know my team details?', a: 'Team details are shared after the team-formation activity via email and the Samagama dashboard.' },
+      { q: 'What happens if a team member is inactive or not contributing?', a: 'First, communicate with your teammate. If the issue persists, escalate it to your mentor. Persistent inactivity may affect the team member\'s evaluation.' },
+    ],
+  },
 ];
 
 async function seed() {

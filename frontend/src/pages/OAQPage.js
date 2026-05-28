@@ -3,17 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './OAQPage.css';
 
-const FAQ_CATEGORIES = [
-  'General', 'Registration', 'Program', 'Technical', 'Assignments',
-  'Mentorship', 'Certification', 'Placement', 'Funding', 'Schedule',
-  'Communication', 'Other',
-];
-
 function OAQPage() {
   const { user, authFetch } = useAuth();
   const navigate = useNavigate();
   const [oaqs, setOaqs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [faqCategories, setFaqCategories] = useState([]);
   const [newQuestion, setNewQuestion] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newCategory, setNewCategory] = useState('');
@@ -39,6 +34,16 @@ function OAQPage() {
   }, [sort]);
 
   useEffect(() => { fetchOaqs(); }, [fetchOaqs]);
+
+  useEffect(() => {
+    fetch('/api/faqs')
+      .then(res => res.json())
+      .then(data => {
+        const cats = data.map(c => c.category).filter(Boolean);
+        setFaqCategories(cats);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -222,7 +227,7 @@ function OAQPage() {
                   onChange={e => setNewCategory(e.target.value)}
                 >
                   <option value="">Select category (optional)</option>
-                  {FAQ_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {faqCategories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               {error && <div className="oaq-error">{error}</div>}
