@@ -1,0 +1,191 @@
+.lb-page {
+  min-height: calc(100vh - 56px);
+  padding: 40px 20px 60px;
+  position: relative;
+  z-index: 1;
+}
+
+.lb-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.lb-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.lb-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.lb-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.lb-rules-toggle {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.lb-rules-toggle:hover {
+  text-decoration: underline;
+}
+
+/* ── Rules card ── */
+.lb-rules {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.lb-rules h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 14px;
+}
+
+.lb-rules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.lb-rule {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-card-hover);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.lb-rule__action {
+  color: var(--text-secondary);
+}
+
+.lb-rule__points {
+  font-weight: 700;
+}
+
+.lb-rule__points.positive { color: var(--success); }
+.lb-rule__points.negative { color: var(--danger); }
+
+/* ── Loader & Empty ── */
+.lb-loader, .lb-empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 40px;
+  font-size: 0.95rem;
+}
+
+/* ── List ── */
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lb-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.lb-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.lb-card--rank-1 { border-color: #fbbf24; background: #fffbeb; }
+.lb-card--rank-2 { border-color: #d4d4d8; background: #fafafa; }
+.lb-card--rank-3 { border-color: #d97706; background: #fff7ed; }
+
+.lb-card--rank-1 .lb-name,
+.lb-card--rank-2 .lb-name,
+.lb-card--rank-3 .lb-name { color: #1e293b; }
+
+.lb-card--rank-1 .lb-score,
+.lb-card--rank-2 .lb-score,
+.lb-card--rank-3 .lb-score { color: #4f46e5; }
+
+.lb-card--rank-1 .lb-stats,
+.lb-card--rank-2 .lb-stats,
+.lb-card--rank-3 .lb-stats { color: #475569; }
+
+.lb-card--rank-1 .lb-rank,
+.lb-card--rank-2 .lb-rank,
+.lb-card--rank-3 .lb-rank { color: #64748b; }
+
+.lb-rank {
+  font-size: 1.3rem;
+  font-weight: 800;
+  min-width: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.lb-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.lb-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lb-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.lb-stats {
+  display: flex;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  flex-wrap: wrap;
+}
+
+.lb-score {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .lb-rules-grid { grid-template-columns: 1fr; }
+  .lb-card { flex-wrap: wrap; }
+  .lb-score { width: 100%; text-align: right; padding-top: 4px; border-top: 1px solid #f1f5f9; }
+}

@@ -1,0 +1,87 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root,
+[data-theme="light"] {
+  --bg-page: transparent;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-muted: #f1f5f9;
+  --bg-sidebar: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --border: #e2e8f0;
+  --border-hover: #93c5fd;
+  --accent: #4f46e5;
+  --accent-light: #eef2ff;
+  --accent-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --warning: #f59e0b;
+  --warning-bg: #fffbeb;
+  --navbar-bg: #ffffff;
+  --navbar-border: #e2e8f0;
+  --body-gradient: linear-gradient(135deg, #eef2ff 0%, #f0f4ff 30%, #e0f2fe 70%, #fce7f3 100%);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  --bg-page: #0b1120;
+  --bg-card: #1a2332;
+  --bg-card-hover: #243044;
+  --bg-muted: #1a2332;
+  --bg-sidebar: #111827;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+  --border: #2d3a50;
+  --border-hover: #6366f1;
+  --accent: #818cf8;
+  --accent-light: #1e1b4b;
+  --accent-gradient: linear-gradient(135deg, #6366f1, #818cf8);
+  --success: #4ade80;
+  --success-bg: #064e3b;
+  --danger: #f87171;
+  --danger-bg: #450a0a;
+  --warning: #fbbf24;
+  --warning-bg: #451a03;
+  --navbar-bg: #111827;
+  --navbar-border: #1e293b;
+  --body-gradient: linear-gradient(135deg, #0b1120 0%, #111827 30%, #0f172a 70%, #1a1a2e 100%);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--body-gradient);
+  min-height: 100vh;
+  color: var(--text-secondary);
+  background-attachment: fixed;
+  transition: background 0.3s, color 0.3s;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(600px circle at 10% 20%, rgba(99,102,241,0.08) 0%, transparent 70%),
+    radial-gradient(500px circle at 90% 60%, rgba(14,165,233,0.08) 0%, transparent 70%),
+    radial-gradient(400px circle at 50% 90%, rgba(244,114,182,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}

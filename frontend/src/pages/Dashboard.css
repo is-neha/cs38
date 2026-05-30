@@ -1,0 +1,258 @@
+.dashboard-page {
+  min-height: 100vh;
+  padding: 40px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-container {
+  max-width: 800px;
+  margin: 0 auto;
+  animation: fadeSlideIn 0.4s ease both;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboard-welcome h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.dashboard-email {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.dashboard-btn {
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  border: none;
+}
+
+.dashboard-btn:hover {
+  transform: translateY(-1px);
+}
+
+.dashboard-btn--secondary {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.dashboard-btn--secondary:hover {
+  background: #e0e7ff;
+}
+
+.dashboard-btn--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.dashboard-btn--danger:hover {
+  background: #fee2e2;
+}
+
+/* ---- Stats ---- */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.dashboard-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.dashboard-stat-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.dashboard-stat-card__icon {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 10px;
+  color: var(--accent);
+}
+
+.dashboard-stat-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dashboard-stat-card__value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.dashboard-stat-card__label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ---- Quick Links ---- */
+
+.dashboard-section h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.dashboard-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.dashboard-link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: box-shadow 0.3s, transform 0.3s;
+  text-align: left;
+}
+
+.dashboard-link-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.dashboard-link-card svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Trending (dashboard) ---- */
+
+.dashboard-trending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.dashboard-trending-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.dashboard-trending-item:hover {
+  border-color: #93c5fd;
+}
+
+.dashboard-trending-rank {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #2563eb;
+  min-width: 28px;
+  line-height: 1.5;
+}
+
+.dashboard-trending-q {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.dashboard-trending-meta {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* ---- My OAQ items ---- */
+
+.dashboard-myoaqs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.dashboard-myoaq-item {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.dashboard-myoaq-item:hover {
+  border-color: #93c5fd;
+}
+
+.dashboard-myoaq-q {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.dashboard-myoaq-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.home-status {
+  font-weight: 600;
+}
+
+.home-status--open { color: var(--warning); }
+.home-status--approved { color: var(--success); }
+.home-status--promoted { color: #2563eb; }
+.home-status--rejected { color: var(--danger); }
