@@ -458,6 +458,11 @@
   to { opacity: 1; }
 }
 
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .home-cat-modal {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -636,6 +641,7 @@
   border: 1px solid var(--border);
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
+  animation: fadeSlideUp 0.4s ease both;
 }
 
 .home-trending-item:hover {
@@ -668,11 +674,6 @@
   gap: 12px;
   font-size: 0.78rem;
   color: var(--text-light);
-}
-
-.home-trending-item__votes {
-  color: var(--success);
-  font-weight: 600;
 }
 
 /* ── Latest list ── */

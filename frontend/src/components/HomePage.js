@@ -295,12 +295,11 @@ function HomePage() {
             </h2>
             <div className="home-trending-list">
               {filteredTrending.map((o, i) => (
-                <div key={o._id} className="home-trending-item" onClick={() => navigate('/community')}>
+                <div key={o._id} className="home-trending-item" onClick={() => navigate('/community')} style={{ animationDelay: `${i * 0.08}s` }}>
                   <span className="home-trending-item__rank">#{i + 1}</span>
                   <div className="home-trending-item__body">
                     <div className="home-trending-item__q">{o.question}</div>
                     <div className="home-trending-item__meta">
-                      <span className="home-trending-item__votes">↑ {o.upvotes || 0}</span>
                       <span>{o.views || 0} views</span>
                       <span>{o.answers?.length || 0} answers</span>
                     </div>
