@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import AutocorrectInput from './AutocorrectInput';
 import { useNavigate } from 'react-router-dom';
 import FAQItem from './FAQItem';
 import './HomePage.css';
@@ -9,7 +10,6 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
   const [openItems, setOpenItems] = useState({});
   const [activeTab, setActiveTab] = useState('all');
   const [listening, setListening] = useState(false);
@@ -17,7 +17,6 @@ function HomePage() {
   const [flipping, setFlipping] = useState(null);
   const [catOpenItems, setCatOpenItems] = useState({});
   const searchTimer = useRef(null);
-  const suggestTimer = useRef(null);
   const searchInputRef = useRef(null);
   const gridRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -87,7 +86,6 @@ function HomePage() {
           combined.push({ ...item, _type: 'OAQ' });
         }
         setSearchResults(combined);
-        setSuggestions([]);
       })
       .catch(() => setSearchResults([]));
   }, []);
@@ -97,18 +95,6 @@ function HomePage() {
     searchTimer.current = setTimeout(() => doSearch(searchQuery), 300);
     return () => clearTimeout(searchTimer.current);
   }, [searchQuery, doSearch]);
-
-  useEffect(() => {
-    if (suggestTimer.current) clearTimeout(suggestTimer.current);
-    if (!searchQuery.trim() || searchQuery.length < 2) { setSuggestions([]); return; }
-    suggestTimer.current = setTimeout(() => {
-      fetch(`/api/search/suggest?q=${encodeURIComponent(searchQuery)}`)
-        .then(res => res.json())
-        .then(setSuggestions)
-        .catch(() => setSuggestions([]));
-    }, 150);
-    return () => clearTimeout(suggestTimer.current);
-  }, [searchQuery]);
 
   const toggleItem = useCallback((idx) => {
     setOpenItems(prev => ({ ...prev, [idx]: prev[idx] === undefined ? 0 : prev[idx] === 0 ? null : 0 }));
@@ -173,14 +159,12 @@ function HomePage() {
               <svg className="home-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
-              <input
-                ref={searchInputRef}
-                type="text"
+              <AutocorrectInput
                 className="home-search-input"
                 placeholder="Search questions, keywords, or topics...  (press / to focus)"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => searchQuery.length >= 2 && fetch(`/api/search/suggest?q=${encodeURIComponent(searchQuery)}`).then(r => r.json()).then(setSuggestions).catch(() => {})}
+                inputRef={searchInputRef}
               />
               {micSupported && (
                 <button
@@ -197,7 +181,7 @@ function HomePage() {
                 </button>
               )}
               {searchQuery && (
-                <button className="home-search-clear" onClick={() => { setSearchQuery(''); setSearchResults(null); setSuggestions([]); }}>
+                <button className="home-search-clear" onClick={() => { setSearchQuery(''); setSearchResults(null); }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
                 </button>
               )}
@@ -208,16 +192,7 @@ function HomePage() {
               </svg>
               New question
             </button>
-            {suggestions.length > 0 && (
-              <div className="home-suggestions">
-                {suggestions.map((s, i) => (
-                  <button key={i} className="home-suggestion" onClick={() => { setSearchQuery(s.text); setSuggestions([]); doSearch(s.text); }}>
-                    <span className="home-suggestion__badge">{s.type === 'FAQ' ? '📖' : '💬'}</span>
-                    <span>{s.text}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+
           </div>
 
           <div className="home-quick-filters">
@@ -320,12 +295,11 @@ function HomePage() {
             </h2>
             <div className="home-trending-list">
               {filteredTrending.map((o, i) => (
-                <div key={o._id} className="home-trending-item" onClick={() => navigate('/community')}>
+                <div key={o._id} className="home-trending-item" onClick={() => navigate('/community')} style={{ animationDelay: `${i * 0.08}s` }}>
                   <span className="home-trending-item__rank">#{i + 1}</span>
                   <div className="home-trending-item__body">
                     <div className="home-trending-item__q">{o.question}</div>
                     <div className="home-trending-item__meta">
-                      <span className="home-trending-item__votes">↑ {o.upvotes || 0}</span>
                       <span>{o.views || 0} views</span>
                       <span>{o.answers?.length || 0} answers</span>
                     </div>
@@ -411,27 +385,6 @@ function HomePage() {
           </div>
         )}
 
-        {/* Stats footer */}
-        {homeData?.stats && (
-          <div className="home-stats-bar">
-            <div className="home-stat">
-              <span className="home-stat__value">{homeData.stats.categories}</span>
-              <span className="home-stat__label">Categories</span>
-            </div>
-            <div className="home-stat">
-              <span className="home-stat__value">{homeData.stats.questions}</span>
-              <span className="home-stat__label">Questions</span>
-            </div>
-            <div className="home-stat">
-              <span className="home-stat__value">{homeData.stats.openOaqs}</span>
-              <span className="home-stat__label">Open Q&A</span>
-            </div>
-            <div className="home-stat">
-              <span className="home-stat__value">{homeData.stats.promotedCount}</span>
-              <span className="home-stat__label">Promoted to FAQ</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

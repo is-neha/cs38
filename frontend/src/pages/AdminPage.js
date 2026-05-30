@@ -37,9 +37,7 @@ function AdminPage() {
   const fetchOaqs = useCallback(() => {
     if (activeTab === 'reports') {
       setReportsLoading(true);
-      fetch('/api/reports', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      })
+      fetch('/api/reports', { credentials: 'include' })
         .then(res => res.json())
         .then(data => { setReports(data); setReportsLoading(false); })
         .catch(() => setReportsLoading(false));
@@ -101,17 +99,15 @@ function AdminPage() {
   const handleReportAction = async (id, action, oaqId) => {
     const res = await fetch(`/api/reports/${id}/resolve`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ action }),
     });
     if (res.ok) {
       if (action === 'dismissed' && oaqId) {
         await fetch(`/api/oaq/${oaqId}/reject`, {
           method: 'PUT',
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          credentials: 'include',
         });
       }
       fetchOaqs();
@@ -121,7 +117,7 @@ function AdminPage() {
   const handleDeleteReported = async id => {
     const res = await fetch(`/api/reports/${id}/content`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      credentials: 'include',
     });
     if (res.ok) fetchOaqs();
   };
@@ -132,7 +128,7 @@ function AdminPage() {
     try {
       const res = await fetch(`/api/ai/summarize/${oaqId}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        credentials: 'include',
       });
       if (res.ok) {
         const data = await res.json();
@@ -153,7 +149,7 @@ function AdminPage() {
     try {
       const res = await fetch(`/api/ai/check-question/${oaqId}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        credentials: 'include',
       });
       if (res.ok) {
         const data = await res.json();
@@ -161,10 +157,8 @@ function AdminPage() {
         if (!data.relevant) {
           await fetch('/api/reports', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
               targetType: 'question',
               targetId: oaqId,

@@ -16,8 +16,8 @@ import './App.css';
 function App() {
   return (
     <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProvider>
           <Navbar />
           <Routes>
             <Route path="/" element={<AuthPage />} />
@@ -35,8 +35,8 @@ function App() {
               </ProtectedRoute>
             } />
           </Routes>
-        </AuthProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
