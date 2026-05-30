@@ -48,14 +48,8 @@ app.get('/api/faqs/search', async (req, res) => {
     }
 
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const fuzzy = escaped.split('').join('.*');
+    const fuzzy = query.length >= 3 ? escaped.split('').join('.*') : escaped;
     const regex = new RegExp(fuzzy, 'i');
-    const faqs = await FAQ.find({
-      $or: [
-        { 'questions.q': { $regex: regex } },
-        { 'questions.a': { $regex: regex } },
-      ],
-    }).lean();
 
     const results = faqs.map(cat => ({
       ...cat,
@@ -96,7 +90,7 @@ app.get('/api/search/all', async (req, res) => {
     if (!query) return res.json({ faq: [], oaq: [] });
 
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const fuzzy = escaped.split('').join('.*');
+    const fuzzy = query.length >= 3 ? escaped.split('').join('.*') : escaped;
     const regex = new RegExp(fuzzy, 'i');
 
     const [faqResults, oaqResults] = await Promise.all([
