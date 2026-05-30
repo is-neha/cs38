@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const Groq = require('groq-sdk');
 const FAQ = require('./models/FAQ');
 const OAQ = require('./models/OAQ');
 const authRoutes = require('./routes/auth');
@@ -13,6 +14,7 @@ const { auth } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const groqApiKey = process.env.GROQ_API_KEY;
 
 /* ── FAQ cache (5 min TTL) ── */
 let faqCache = null;
@@ -363,14 +365,38 @@ app.post('/api/ai/check-duplicate', async (req, res) => {
       .sort((a, b) => b.score - a.score)
       .slice(0, 1);
 
-    /* check if question is out of scope — fuzzy-match against ALL FAQ text */
-    const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
-    let bestFuzzy = 0;
-    for (const text of allFaqTexts) {
-      const fs = fuzzyScore(text);
-      if (fs > bestFuzzy) bestFuzzy = fs;
+    let outOfScope = false;
+    if (duplicates.length === 0) {
+      const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
+      let bestFuzzy = 0;
+      for (const text of allFaqTexts) {
+        const fs = fuzzyScore(text);
+        if (fs > bestFuzzy) bestFuzzy = fs;
+      }
+      outOfScope = bestFuzzy < 0.2;
     }
-    const outOfScope = bestFuzzy < 0.2 && duplicates.length === 0;
+
+    /* Validate with Groq AI if available */
+    if (duplicates.length > 0 && groqApiKey) {
+      const groq = new Groq({ apiKey: groqApiKey });
+      const dup = duplicates[0];
+      const completion = await groq.chat.completions.create({
+        messages: [{
+          role: 'user',
+          content: `Are these two questions asking the same thing?
+Existing: "${dup.text}"
+New: "${question.trim()}"
+Reply ONLY with JSON: { "isDuplicate": true/false, "reason": "brief explanation" }`,
+        }],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+      });
+      const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+      if (!result.isDuplicate) {
+        return res.json({ duplicates: [], outOfScope: false });
+      }
+    }
 
     res.json({ duplicates, outOfScope });
   } catch (err) {
