@@ -194,7 +194,7 @@ app.get('/api/home', async (req, res) => {
     const trending = trendingOaqs
       .map(o => ({
         ...o,
-        _score: (o.upvotes || 0) * 3 + (o.views || 0) * 0.5 + (o.answers?.length || 0) * 2,
+        _score: (o.views || 0) * 3 + (o.answers?.length || 0) * 1,
       }))
       .sort((a, b) => b._score - a._score)
       .slice(0, 5);
@@ -241,7 +241,7 @@ app.get('/api/dashboard', auth, async (req, res) => {
     const trending = trendingOaqs
       .map(o => ({
         ...o,
-        _score: (o.upvotes || 0) * 3 + (o.views || 0) * 0.5 + (o.answers?.length || 0) * 2,
+        _score: (o.views || 0) * 3 + (o.answers?.length || 0) * 1,
       }))
       .sort((a, b) => b._score - a._score)
       .slice(0, 5);
