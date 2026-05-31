@@ -12,7 +12,7 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const toggleMenu = () => setIsOpen(p => !p);
   const closeMenu = () => setIsOpen(false);
-  const isAuthPage = location.pathname === '/';
+  const isAuthPage = location.pathname === '/' || location.pathname === '/auth';
 
   if (isAuthPage && !user) {
     return (
