@@ -1,11 +1,18 @@
+<<<<<<< HEAD
 ﻿.admin-page {
+=======
+.admin-page {
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   min-height: calc(100vh - 56px);
   padding: 40px 20px 60px;
   position: relative;
   z-index: 1;
+<<<<<<< HEAD
   background: var(--bg-secondary);
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   border-top: 3px solid #6366f1;
+=======
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-container {
@@ -19,6 +26,7 @@
 }
 
 .admin-title {
+<<<<<<< HEAD
   font-size: 2.2rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -28,6 +36,16 @@
 
 .admin-subtitle {
   font-size: 1.1rem;
+=======
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.admin-subtitle {
+  font-size: 0.95rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   color: var(--text-muted);
 }
 
@@ -44,12 +62,20 @@
 
 .admin-tab {
   flex: 1;
+<<<<<<< HEAD
   padding: 12px 16px;
+=======
+  padding: 9px;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   border: none;
   background: none;
   border-radius: 7px;
   font-family: inherit;
+<<<<<<< HEAD
   font-size: 1rem;
+=======
+  font-size: 0.85rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
@@ -66,7 +92,11 @@
   text-align: center;
   color: var(--text-light);
   padding: 40px;
+<<<<<<< HEAD
   font-size: 1.05rem;
+=======
+  font-size: 0.95rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 /* ---- List ---- */
@@ -93,14 +123,23 @@
 
 .admin-card__votes {
   display: flex;
+<<<<<<< HEAD
   gap: 12px;
   font-size: 0.88rem;
+=======
+  gap: 10px;
+  font-size: 0.8rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   font-weight: 600;
 }
 
 .admin-vote-count {
   color: var(--text-muted);
+<<<<<<< HEAD
   font-size: 0.9rem;
+=======
+  font-size: 0.85rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-answer-count {
@@ -113,9 +152,15 @@
 }
 
 .admin-btn {
+<<<<<<< HEAD
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 0.85rem;
+=======
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -134,6 +179,7 @@
 .admin-btn--promote { background: var(--accent-light); color: var(--accent); }
 .admin-btn--promote:hover:not(.disabled) { background: #e0e7ff; }
 .admin-btn--promote.disabled { opacity: 0.4; cursor: not-allowed; }
+<<<<<<< HEAD
 .admin-btn--text { background: none; border: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 0.85rem; font-weight: 600; }
 
 .admin-card__meta {
@@ -142,6 +188,25 @@
   font-size: 0.88rem;
   color: var(--text-light);
   margin-bottom: 14px;
+=======
+.admin-btn--text { background: none; border: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 0.78rem; font-weight: 600; }
+.admin-btn--text:hover { text-decoration: underline; }
+
+.admin-card__question {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.admin-card__meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-bottom: 12px;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-hint {
@@ -165,16 +230,28 @@
 }
 
 .admin-answer__body p {
+<<<<<<< HEAD
   font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 6px;
+=======
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 4px;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-answer__meta {
   display: flex;
+<<<<<<< HEAD
   gap: 12px;
   font-size: 0.83rem;
+=======
+  gap: 10px;
+  font-size: 0.75rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   color: var(--text-light);
   align-items: center;
 }
@@ -187,10 +264,17 @@
 
 .admin-edit-textarea {
   width: 100%;
+<<<<<<< HEAD
   padding: 12px 14px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.95rem;
+=======
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.88rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   font-family: inherit;
   resize: vertical;
   outline: none;
@@ -208,6 +292,7 @@
 .admin-accepted-badge {
   color: var(--success);
   font-weight: 700;
+<<<<<<< HEAD
   font-size: 0.83rem;
 }
 
@@ -227,6 +312,9 @@
   background: var(--bg-muted);
   padding: 3px 10px;
   border-radius: 4px;
+=======
+  font-size: 0.75rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-report-status {
@@ -277,7 +365,11 @@
   background: #1e293b;
   color: #a78bfa;
   border: 1.5px solid #6366f1;
+<<<<<<< HEAD
   font-size: 0.85rem;
+=======
+  font-size: 0.78rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-btn--ai:hover:not(:disabled) {
@@ -294,7 +386,11 @@
   background: #1e293b;
   color: #34d399;
   border: 1.5px solid #10b981;
+<<<<<<< HEAD
   font-size: 0.85rem;
+=======
+  font-size: 0.78rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .admin-btn--ai-check:hover:not(:disabled) {
@@ -338,14 +434,22 @@
 
 .admin-ai-result {
   margin-top: 12px;
+<<<<<<< HEAD
   padding: 14px 16px;
+=======
+  padding: 12px 14px;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   background: #1e1b4b;
   border: 1px solid #6366f1;
   border-radius: 10px;
 }
 
 .admin-ai-header {
+<<<<<<< HEAD
   font-size: 0.8rem;
+=======
+  font-size: 0.75rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -354,20 +458,32 @@
 }
 
 .admin-ai-text {
+<<<<<<< HEAD
   font-size: 0.95rem;
+=======
+  font-size: 0.88rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   color: var(--text-primary);
   line-height: 1.5;
   margin: 0 0 8px;
 }
 
 .admin-ai-best {
+<<<<<<< HEAD
   font-size: 0.9rem;
+=======
+  font-size: 0.85rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   color: var(--text-secondary);
   margin: 0;
 }
 
 .admin-ai-error {
+<<<<<<< HEAD
   font-size: 0.9rem;
+=======
+  font-size: 0.85rem;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   color: var(--danger);
   margin: 0;
 }

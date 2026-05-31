@@ -1,8 +1,42 @@
+<<<<<<< HEAD
+=======
+/*
+ * HomePage.css — Styles for the HomePage component.
+ *
+ * === OVERALL PURPOSE ===
+ * This stylesheet handles the layout, visual design, animations,
+ * responsive breakpoints, and dark‑mode overrides for the homepage
+ * (hero, search bar, quick filters, category grid, trending list,
+ * latest discussions, and the category modal).
+ *
+ * === THEME ARCHITECTURE ===
+ * The app uses CSS custom properties (―var) defined on :root (light)
+ * and overridden under [data-theme="dark"] at a global level.
+ * This file references those variables for colors and shadows.
+ * Specific dark‑mode overrides are also applied locally via
+ * [data-theme="dark"] selectors for elements that need hard‑coded
+ * colours (e.g. the light‑background search bar on dark mode).
+ */
+
+/* ────────────────────────────────────────────────────────────────
+   .home-page — Root wrapper
+   Spans full viewport height so the gradient covers the top area.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-page {
   min-height: 100vh;
   position: relative;
 }
 
+<<<<<<< HEAD
+=======
+/* ────────────────────────────────────────────────────────────────
+   .home-gradient — Decorative background gradient
+   A blue gradient placed behind the hero area (inset top).
+   Has rounded bottom corners for a modern look.
+   z‑index keeps it below the content container.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-gradient {
   position: absolute;
   inset: 0 0 auto;
@@ -12,6 +46,14 @@
   z-index: 0;
 }
 
+<<<<<<< HEAD
+=======
+/* ────────────────────────────────────────────────────────────────
+   .home-container — Centred content wrapper
+   Constrains width to 1100 px, centres horizontally with auto
+   margins, and applies consistent padding.  z‑index > gradient.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-container {
   max-width: 1100px;
   margin: 0 auto;
@@ -20,6 +62,15 @@
   z-index: 1;
 }
 
+<<<<<<< HEAD
+=======
+/* ────────────────────────────────────────────────────────────────
+   .home-loader — Loading spinner
+   While data is being fetched a full‑height centre‑aligned flex
+   container is shown.  The ::after pseudo‑element renders a
+   rotating border‑based circle (pure CSS spinner).
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-loader {
   display: flex;
   align-items: center;
@@ -37,13 +88,25 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+<<<<<<< HEAD
 /* ── Hero ── */
+=======
+/* ── Hero ────────────────────────────────────────────────────────
+   The hero section contains the badge, title, subtitle, search
+   bar, and quick filters.  Text is white because it sits on the
+   blue gradient background.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-hero {
   text-align: center;
   padding: 50px 0 30px;
   color: white;
 }
 
+<<<<<<< HEAD
+=======
+/* .home-badge — "Vicharanashala Help Center" pill badge */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-badge {
   display: inline-block;
   padding: 5px 14px;
@@ -57,6 +120,10 @@
   margin-bottom: 16px;
 }
 
+<<<<<<< HEAD
+=======
+/* .home-title — Main heading "How can we help you?" */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-title {
   font-size: 2.6rem;
   font-weight: 800;
@@ -64,6 +131,10 @@
   letter-spacing: -0.5px;
 }
 
+<<<<<<< HEAD
+=======
+/* .home-subtitle — Supporting text below the title */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-subtitle {
   font-size: 1.05rem;
   opacity: 0.85;
@@ -73,7 +144,17 @@
   margin-right: auto;
 }
 
+<<<<<<< HEAD
 /* ── Search ── */
+=======
+/* ── Search ──────────────────────────────────────────────────────
+   The search wrapper contains the input + mic + clear + ask button.
+   Uses flexbox row layout so the search field and the "New question"
+   button sit side by side.
+   ──────────────────────────────────────────────────────────────── */
+
+/* .home-search-wrapper — Flex container for the search bar + ask button */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-search-wrapper {
   max-width: 720px;
   margin: 0 auto;
@@ -83,6 +164,7 @@
   align-items: stretch;
 }
 
+<<<<<<< HEAD
 .home-search {
   display: flex;
   flex: 1;
@@ -90,10 +172,19 @@
   background: #fff;
   border-radius: 14px;
   padding: 0 18px;
+=======
+/* .home-search — The actual input wrapper (white card with shadow) */
+.home-search {
+  position: relative;
+  flex: 1;
+  background: #fff;
+  border-radius: 14px;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   box-shadow: var(--shadow-lg);
   transition: background 0.3s, box-shadow 0.3s;
 }
 
+<<<<<<< HEAD
 .home-search-icon {
   width: 20px;
   height: 20px;
@@ -105,19 +196,59 @@
   flex: 1;
   border: none;
   padding: 16px 14px;
+=======
+/* .home-search-icon — Magnifying‑glass SVG positioned inside the input */
+.home-search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--text-light);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* .home-search-input — The <AutocorrectInput> text field
+   Uses transparent background so the white parent shows through.
+   Extra right padding reserves space for the mic & clear buttons. */
+.home-search-input {
+  width: 100%;
+  border: none;
+  padding: 16px 110px 16px 52px;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   font-size: 1rem;
   font-family: inherit;
   background: transparent;
   outline: none;
   color: var(--text-secondary);
+<<<<<<< HEAD
 }
 
+=======
+  box-sizing: border-box;
+}
+
+/* Placeholder styling inside the search input */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-search-input::placeholder {
   color: var(--text-light);
 }
 
+<<<<<<< HEAD
 .home-search-clear {
   flex-shrink: 0;
+=======
+/* .home-search-clear — "X" button to clear the search query
+   Positioned absolutely on the right side of the search input.
+   Only rendered when searchQuery is non‑empty. */
+.home-search-clear {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   width: 32px;
   height: 32px;
   border: none;
@@ -129,6 +260,10 @@
   justify-content: center;
   color: var(--text-muted);
   transition: background 0.2s;
+<<<<<<< HEAD
+=======
+  z-index: 2;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .home-search-clear:hover {
@@ -140,6 +275,12 @@
   height: 16px;
 }
 
+<<<<<<< HEAD
+=======
+/* .home-ask-btn — "New question" button next to the search bar
+   Links to /community page.  On dark mode it gets a solid white
+   background with dark text. */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-ask-btn {
   display: flex;
   align-items: center;
@@ -168,6 +309,17 @@
   transform: translateY(0);
 }
 
+<<<<<<< HEAD
+=======
+/* ── Dark mode overrides for search area ──────────────────────────
+   On dark theme the search bar and ask button keep a white
+   background (to stay readable against the gradient).  The input
+   text colour is switched to a dark slate so it contrasts with
+   the white field.
+   ──────────────────────────────────────────────────────────────── */
+
+/* Dark mode: "New question" button — white bg, dark text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .home-ask-btn {
   background: #fff;
   color: #1e293b;
@@ -179,20 +331,44 @@
   box-shadow: var(--shadow-lg);
 }
 
+<<<<<<< HEAD
+=======
+/* Dark mode: search bar wrapper — keep white bg */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .home-search {
   background: #fff;
 }
 
+<<<<<<< HEAD
+=======
+/* Dark mode: input text — dark colour for contrast on white */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .home-search-input {
   color: #1e293b;
 }
 
+<<<<<<< HEAD
+=======
+/* Dark mode: placeholder text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .home-search-input::placeholder {
   color: #94a3b8;
 }
 
+<<<<<<< HEAD
 .home-search-mic {
   flex-shrink: 0;
+=======
+/* .home-search-mic — Microphone button for voice search
+   Positioned between the input text and the clear button.
+   Only rendered when the browser supports the Web Speech API.
+   When active (listening), it turns red with a pulsing glow. */
+.home-search-mic {
+  position: absolute;
+  right: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   width: 32px;
   height: 32px;
   border: none;
@@ -204,6 +380,10 @@
   justify-content: center;
   color: var(--text-muted);
   transition: all 0.2s;
+<<<<<<< HEAD
+=======
+  z-index: 2;
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .home-search-mic:hover {
@@ -216,6 +396,11 @@
   height: 17px;
 }
 
+<<<<<<< HEAD
+=======
+/* Active (listening) state — red icon with a pulsing box-shadow
+   ring animation to provide visual feedback while the mic is on. */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-search-mic--active {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
@@ -227,7 +412,14 @@
   50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 
+<<<<<<< HEAD
 /* ── Quick filters ── */
+=======
+/* ── Quick filters ───────────────────────────────────────────────
+   Row of pill‑shaped buttons below the search bar (All / Trending /
+   Open / Resolved).  Uses flexbox with wrapping for small screens.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-quick-filters {
   display: flex;
   align-items: center;
@@ -237,12 +429,20 @@
   flex-wrap: wrap;
 }
 
+<<<<<<< HEAD
+=======
+/* "Quick filters:" label text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-filter-label {
   font-size: 0.85rem;
   opacity: 0.8;
   margin-right: 4px;
 }
 
+<<<<<<< HEAD
+=======
+/* Individual filter pill — translucent on the hero gradient */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-filter-pill {
   padding: 6px 14px;
   border: 1px solid rgba(255,255,255,0.3);
@@ -260,6 +460,10 @@
   background: rgba(255,255,255,0.2);
 }
 
+<<<<<<< HEAD
+=======
+/* Active pill switches to a card‑style background to stand out */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-filter-pill.active {
   background: var(--bg-card);
   color: var(--accent);
@@ -267,7 +471,15 @@
   font-weight: 600;
 }
 
+<<<<<<< HEAD
 /* ── Search results ── */
+=======
+/* ── Search results ───────────────────────────────────────────────
+   Card shown below the hero when a search query is active.
+   Displays result count, a list of FAQItem / OAQ results, or an
+   empty state with a CTA to ask the community.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-results {
   background: var(--bg-card);
   border-radius: 16px;
@@ -276,6 +488,10 @@
   box-shadow: var(--shadow-md);
 }
 
+<<<<<<< HEAD
+=======
+/* Header row: "X results" on the left, "Clear" link on the right */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-results-header {
   display: flex;
   justify-content: space-between;
@@ -289,6 +505,10 @@
   color: var(--text-muted);
 }
 
+<<<<<<< HEAD
+=======
+/* Small "Clear" text button to reset the search */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-results-clear {
   border: none;
   background: none;
@@ -299,6 +519,10 @@
   font-family: inherit;
 }
 
+<<<<<<< HEAD
+=======
+/* Empty state — shown when no results match the query */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-results-empty {
   text-align: center;
   padding: 40px 20px;
@@ -308,6 +532,10 @@
 .home-results-empty h3 { margin: 0 0 8px; color: var(--text-secondary); }
 .home-results-empty p { margin: 0 0 20px; }
 
+<<<<<<< HEAD
+=======
+/* "Ask the Community" call‑to‑action button */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cta-btn {
   padding: 10px 24px;
   background: linear-gradient(135deg, #2563eb, #3b82f6);
@@ -326,12 +554,20 @@
   box-shadow: 0 4px 16px rgba(37,99,235,0.35);
 }
 
+<<<<<<< HEAD
+=======
+/* Result list — vertical stack of FAQItem / OAQ entries */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-results-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+<<<<<<< HEAD
+=======
+/* Each OAQ (community) result card */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-result-oaq {
   background: var(--bg-card-hover);
   border: 1px solid var(--border);
@@ -363,11 +599,22 @@
   color: var(--text-light);
 }
 
+<<<<<<< HEAD
 /* ── Section ── */
+=======
+/* ── Section ─────────────────────────────────────────────────────
+   Generic section wrapper used by "Browse by Category", trending,
+   and latest discussions.  Adds vertical spacing.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-section {
   margin-top: 40px;
 }
 
+<<<<<<< HEAD
+=======
+/* Section title with inline SVG icon (e.g. "Browse by Category") */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-section-title {
   display: flex;
   align-items: center;
@@ -384,13 +631,28 @@
   color: #2563eb;
 }
 
+<<<<<<< HEAD
 /* ── Category grid ── */
+=======
+/* ── Category grid ───────────────────────────────────────────────
+   Grid of clickable category cards.  Each card has an emoji icon,
+   the category name, and a question count.
+   .home-category-card—flip triggers a 3D flip animation before
+   opening the category modal.
+   ──────────────────────────────────────────────────────────────── */
+
+/* Responsive auto‑fill grid, minimum column width 180 px */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 14px;
 }
 
+<<<<<<< HEAD
+=======
+/* Individual category card */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-card {
   background: var(--bg-card);
   border-radius: 14px;
@@ -402,22 +664,38 @@
   animation: fadeUp 0.4s ease both;
 }
 
+<<<<<<< HEAD
+=======
+/* Staggered fade‑in animation for the grid cards */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+<<<<<<< HEAD
+=======
+/* Hover: lift card with shadow and blue border */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
   border-color: #93c5fd;
 }
 
+<<<<<<< HEAD
+=======
+/* Emoji / icon at the top of each card */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-card__icon {
   font-size: 2rem;
   margin-bottom: 8px;
 }
 
+<<<<<<< HEAD
+=======
+/* Category name text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-card__name {
   font-weight: 600;
   color: var(--text-secondary);
@@ -425,11 +703,20 @@
   margin-bottom: 4px;
 }
 
+<<<<<<< HEAD
+=======
+/* "X questions" count text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-card__count {
   font-size: 0.8rem;
   color: var(--text-light);
 }
 
+<<<<<<< HEAD
+=======
+/* Flip animation triggered onClick before modal opens.
+   Scales down and rotates 90° on the Y axis, then back. */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-category-card--flip {
   animation: cardFlip 0.4s ease;
 }
@@ -440,7 +727,17 @@
   100% { transform: scale(1) rotateY(0); }
 }
 
+<<<<<<< HEAD
 /* ── Category modal ── */
+=======
+/* ── Category modal ──────────────────────────────────────────────
+   Full‑screen overlay with a centred modal that lists all questions
+   for the selected category.  Uses fixed positioning so it sits
+   above everything (z‑index 400).
+   ──────────────────────────────────────────────────────────────── */
+
+/* Semi‑transparent dark backdrop */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-overlay {
   position: fixed;
   inset: 0;
@@ -458,11 +755,19 @@
   to { opacity: 1; }
 }
 
+<<<<<<< HEAD
+=======
+/* Used by trending items for their entrance animation */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+<<<<<<< HEAD
+=======
+/* The modal card itself — scrollable column layout */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-modal {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -477,11 +782,19 @@
   position: relative;
 }
 
+<<<<<<< HEAD
+=======
+/* Pop‑in animation for the modal */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 @keyframes modalPop {
   from { opacity: 0; transform: scale(0.92) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+<<<<<<< HEAD
+=======
+/* Close (X) button at the top‑right of the modal */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-close {
   position: absolute;
   top: 12px;
@@ -509,6 +822,10 @@
   height: 18px;
 }
 
+<<<<<<< HEAD
+=======
+/* Modal header — icon, category name, and count */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-modal__header {
   text-align: center;
   padding: 28px 24px 16px;
@@ -535,23 +852,39 @@
   display: inline-block;
 }
 
+<<<<<<< HEAD
+=======
+/* Scrollable body that holds the FAQItem list */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-modal__body {
   flex: 1;
   overflow-y: auto;
   padding: 12px 24px;
 }
 
+<<<<<<< HEAD
+=======
+/* "No questions in this category yet." empty state */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-modal__empty {
   text-align: center;
   color: var(--text-muted);
   padding: 24px 0;
 }
 
+<<<<<<< HEAD
+=======
+/* Container for the FAQItem components inside the modal */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-questions {
   display: flex;
   flex-direction: column;
 }
 
+<<<<<<< HEAD
+=======
+/* Deprecated / alternate question row style (unused by current FAQItem) */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-question {
   display: flex;
   align-items: center;
@@ -602,6 +935,10 @@
   flex-shrink: 0;
 }
 
+<<<<<<< HEAD
+=======
+/* Modal footer — "View all in FAQ" button */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-cat-modal__footer {
   padding: 12px 24px 20px;
   text-align: center;
@@ -624,7 +961,15 @@
   background: #6366f1;
 }
 
+<<<<<<< HEAD
 /* ── Trending list ── */
+=======
+/* ── Trending list ────────────────────────────────────────────────
+   Vertical list of trending community questions.  Each item shows
+   a rank number (#1, #2 …), the question text, and metadata (views,
+   answers).
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-trending-list {
   display: flex;
   flex-direction: column;
@@ -649,6 +994,10 @@
   box-shadow: 0 2px 12px rgba(37,99,235,0.06);
 }
 
+<<<<<<< HEAD
+=======
+/* Rank number (#1, #2, …) — large, bold, blue */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-trending-item__rank {
   font-size: 1.2rem;
   font-weight: 800;
@@ -662,6 +1011,10 @@
   min-width: 0;
 }
 
+<<<<<<< HEAD
+=======
+/* Question text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-trending-item__q {
   font-weight: 600;
   color: var(--text-secondary);
@@ -669,6 +1022,10 @@
   margin-bottom: 4px;
 }
 
+<<<<<<< HEAD
+=======
+/* Metadata row: views · answers */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-trending-item__meta {
   display: flex;
   gap: 12px;
@@ -676,13 +1033,24 @@
   color: var(--text-light);
 }
 
+<<<<<<< HEAD
 /* ── Latest list ── */
+=======
+/* ── Latest list ──────────────────────────────────────────────────
+   Vertical list of the most recent community discussions.  Each
+   item shows the question, author, date, and status badge.
+   ──────────────────────────────────────────────────────────────── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-latest-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+<<<<<<< HEAD
+=======
+/* Single latest‑discussion row */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-latest-item {
   display: flex;
   justify-content: space-between;
@@ -699,6 +1067,10 @@
   border-color: #93c5fd;
 }
 
+<<<<<<< HEAD
+=======
+/* Question text (left side) — truncated with ellipsis if too long */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-latest-item__q {
   font-weight: 600;
   color: var(--text-secondary);
@@ -710,6 +1082,10 @@
   white-space: nowrap;
 }
 
+<<<<<<< HEAD
+=======
+/* Metadata row (right side) — author · date · status */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-latest-item__meta {
   display: flex;
   gap: 6px;
@@ -719,15 +1095,24 @@
   margin-left: 12px;
 }
 
+<<<<<<< HEAD
+=======
+/* Generic status badge base */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-status {
   font-weight: 600;
 }
 
+<<<<<<< HEAD
+=======
+/* Status colour variants — mapped to CSS custom properties */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .home-status--open { color: var(--warning); }
 .home-status--approved { color: var(--success); }
 .home-status--promoted { color: #2563eb; }
 .home-status--rejected { color: var(--danger); }
 
+<<<<<<< HEAD
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .home-title { font-size: 1.8rem; }
@@ -736,3 +1121,71 @@
   .home-latest-item { flex-direction: column; align-items: flex-start; gap: 4px; }
   .home-latest-item__meta { margin-left: 0; }
 }
+=======
+/* ── Responsive breakpoints ──────────────────────────────────────
+   Two breakpoints adjust the layout for tablets (≤768 px) and
+   mobile phones (≤480 px).  Changes include:
+     • Smaller hero text & gradient height
+     • Compact search input padding
+     • Category grid switches from auto‑fill to 2 columns then 1
+     • Latest items stack vertically on ≤768 px
+     • Modal becomes bottom‑sheet style on mobile (rounded top,
+       full width, aligned to bottom)
+     • Reduced container padding on the smallest screens
+   ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Reduce hero vertical padding */
+  .home-hero {
+    padding: 32px 0 24px;
+  }
+  /* Smaller heading & subtitle */
+  .home-title { font-size: 1.8rem; }
+  .home-subtitle { font-size: 0.95rem; margin-bottom: 24px; }
+  /* Shorter gradient */
+  .home-gradient { height: 280px; }
+  /* Compact input padding */
+  .home-search-input {
+    padding: 14px 100px 14px 46px;
+    font-size: 0.95rem;
+  }
+  /* Category grid: fixed 2 columns */
+  .home-category-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .home-category-card { padding: 16px 12px; }
+  /* Latest items: stack vertically */
+  .home-latest-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .home-latest-item__meta { margin-left: 0; }
+  /* Compact search results card */
+  .home-results { padding: 16px; }
+  /* Category modal: bottom‑sheet style */
+  .home-cat-overlay { padding: 12px; align-items: flex-end; }
+  .home-cat-modal {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+  }
+  .home-cat-modal__header { padding: 20px 20px 12px; }
+  .home-cat-modal__body { padding: 8px 20px; }
+  /* Compact trending / latest item padding */
+  .home-trending-item { padding: 12px 14px; }
+  .home-latest-item { padding: 12px 14px; }
+}
+
+@media (max-width: 480px) {
+  /* Even smaller title */
+  .home-title { font-size: 1.4rem; }
+  /* Reduced container padding */
+  .home-container { padding: 0 16px 40px; }
+  /* Shorter gradient */
+  .home-gradient { height: 240px; }
+  /* Category grid: single column */
+  .home-category-grid { grid-template-columns: 1fr; }
+  /* Further compact search input */
+  .home-search-icon { left: 14px; }
+  .home-search-input { padding: 12px 90px 12px 42px; font-size: 0.9rem; }
+  .home-search-clear { right: 10px; width: 28px; height: 28px; }
+  .home-search-mic { right: 46px; width: 28px; height: 28px; }
+  /* Smaller modal title */
+  .home-cat-modal__title { font-size: 1.1rem; }
+}
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2

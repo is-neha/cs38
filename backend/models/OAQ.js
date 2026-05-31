@@ -6,8 +6,11 @@ const answerSchema = new mongoose.Schema({
   votedUpBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   votedDownBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   accepted: { type: Boolean, default: false },
+<<<<<<< HEAD
   answeredByAdmin: { type: Boolean, default: false },
   verifiedByAdmin: { type: Boolean, default: false },
+=======
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }, { timestamps: true });
 
 answerSchema.virtual('upvotes').get(function() { return (this.votedUpBy || []).length; });

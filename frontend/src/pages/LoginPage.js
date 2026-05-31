@@ -25,11 +25,15 @@ function LoginPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }
       login(data.user);
+<<<<<<< HEAD
       if (data.user.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
+=======
+      navigate('/dashboard');
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     } catch { setError('Connection error. Please try again.'); }
     finally { setSubmitting(false); }
   };

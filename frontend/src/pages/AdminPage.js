@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+=======
+import React, { useState, useEffect, useCallback } from 'react';
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AdminPage.css';
@@ -25,8 +29,11 @@ function AdminPage() {
   const [aiResult, setAiResult] = useState({});
   const [aiCheck, setAiCheck] = useState({});
   const [aiCheckLoading, setAiCheckLoading] = useState(null);
+<<<<<<< HEAD
   const [answeringId, setAnsweringId] = useState(null);
   const [answerText, setAnswerText] = useState('');
+=======
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
   useEffect(() => {
     if (authLoading) return;
@@ -82,6 +89,7 @@ function AdminPage() {
     if (res.ok) fetchOaqs();
   };
 
+<<<<<<< HEAD
   const handleAdminAnswer = async (oaqId) => {
     if (!answerText.trim()) return;
     const res = await authFetch(`/api/oaq/${oaqId}/answers`, {
@@ -92,6 +100,8 @@ function AdminPage() {
     if (res.ok) { setAnsweringId(null); setAnswerText(''); fetchOaqs(); }
   };
 
+=======
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
   const canPromote = oaq => oaq.netVotes >= 10;
@@ -201,7 +211,11 @@ function AdminPage() {
 
         {activeTab === 'reports' ? (
           reportsLoading ? (
+<<<<<<< HEAD
             <div className="admin-loader">Loading reportsΓÇª</div>
+=======
+            <div className="admin-loader">Loading reports…</div>
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
           ) : reports.length === 0 ? (
             <div className="admin-empty">No reports.</div>
           ) : (
@@ -232,7 +246,11 @@ function AdminPage() {
             </div>
           )
         ) : loading ? (
+<<<<<<< HEAD
           <div className="admin-loader">LoadingΓÇª</div>
+=======
+          <div className="admin-loader">Loading…</div>
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         ) : oaqs.length === 0 ? (
           <div className="admin-empty">No {activeTab} questions.</div>
         ) : (
@@ -251,7 +269,11 @@ function AdminPage() {
                         onClick={() => handleAiSummarize(oaq._id)}
                         disabled={aiLoading === oaq._id}
                       >
+<<<<<<< HEAD
                         {aiLoading === oaq._id ? 'Analyzing...' : 'AI Summarize'}
+=======
+                        {aiLoading === oaq._id ? 'Analyzing…' : 'AI Summarize'}
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                       </button>
                     )}
                     <button
@@ -259,7 +281,11 @@ function AdminPage() {
                       onClick={() => handleAiCheck(oaq._id)}
                       disabled={aiCheckLoading === oaq._id}
                     >
+<<<<<<< HEAD
                       {aiCheckLoading === oaq._id ? 'Checking...' : 'AI Check'}
+=======
+                      {aiCheckLoading === oaq._id ? 'Checking…' : 'AI Check'}
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                     </button>
                   </div>
                   <div className="admin-card__actions">
@@ -310,8 +336,11 @@ function AdminPage() {
                               <span>by {ans.submittedBy?.name || 'Anonymous'}</span>
                               <span>{formatDate(ans.createdAt)}</span>
                               <span>{ans.upvotes}↑ {ans.downvotes}↓</span>
+<<<<<<< HEAD
                               {ans.verifiedByAdmin && <span className="admin-accepted-badge" style={{ color: '#059669' }}>✅ Verified by admin</span>}
                               {ans.answeredByAdmin && <span className="admin-accepted-badge" style={{ color: '#6366f1' }}>✅ Answered by admin</span>}
+=======
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                               {ans.accepted && <span className="admin-accepted-badge">✓ Accepted</span>}
                               <button className="admin-btn--text" onClick={() => handleAcceptAnswer(oaq._id, ans._id)}>
                                 {ans.accepted ? 'Unaccept' : 'Accept'}
@@ -325,6 +354,7 @@ function AdminPage() {
                   </div>
                 )}
 
+<<<<<<< HEAD
                 {answeringId === oaq._id ? (
                   <div className="admin-edit-form" style={{ marginTop: 12 }}>
                     <textarea
@@ -345,6 +375,8 @@ function AdminPage() {
                   </button>
                 )}
 
+=======
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                 {aiCheck[oaq._id]?.error && (
                   <div className="admin-ai-result" style={{ borderColor: 'var(--warning)', marginTop: 8 }}>
                     <div className="admin-ai-header">AI Check</div>
@@ -356,8 +388,13 @@ function AdminPage() {
                     <div className="admin-ai-header">AI Check</div>
                     <p className="admin-ai-text">
                       {aiCheck[oaq._id].relevant
+<<<<<<< HEAD
                         ? 'Γ£à This question appears relevant to the internship.'
                         : '≡ƒÜ⌐ This may be unrelated or spam.'}
+=======
+                        ? '✅ This question appears relevant to the internship.'
+                        : '🚩 This may be unrelated or spam.'}
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                     </p>
                     {aiCheck[oaq._id].reason && <p className="admin-ai-best">{aiCheck[oaq._id].reason}</p>}
                     {!aiCheck[oaq._id].relevant && (
@@ -379,7 +416,11 @@ function AdminPage() {
                         {aiResult[oaq._id].bestAnswerIndex >= 0 && (
                           <p className="admin-ai-best">
                             Best answer: <strong>#{aiResult[oaq._id].bestAnswerIndex + 1}</strong>
+<<<<<<< HEAD
                             {aiResult[oaq._id].reason && <span> ΓÇö {aiResult[oaq._id].reason}</span>}
+=======
+                            {aiResult[oaq._id].reason && <span> — {aiResult[oaq._id].reason}</span>}
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                           </p>
                         )}
                       </>

@@ -1,3 +1,24 @@
+<<<<<<< HEAD
+=======
+/*
+ * FAQItem.css — Styles for a single FAQ accordion item.
+ *
+ * Accordion expand/collapse is achieved via max-height + opacity
+ * transitions on .faq-item__content. When the parent .faq-item gains
+ * the .faq-item--open modifier the content area expands and becomes
+ * opaque.
+ *
+ * Chevron rotation: .faq-item__icon rotates 90° when open, giving a
+ * visual indicator of the expanded state.
+ *
+ * Dark mode overrides use [data-theme="dark"] selectors to recolor the
+ * open-state accents.
+ *
+ * Responsive: at ≤640px the trigger and answer text/padding shrink.
+ */
+
+/* ── Base item card ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -11,13 +32,21 @@
   box-shadow: var(--shadow-sm);
 }
 
+<<<<<<< HEAD
+=======
+/* Open state: stronger border and a subtle shadow */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item--open {
   border-color: var(--border-hover);
   box-shadow: 0 4px 20px rgba(30, 64, 175, 0.08);
 }
 
+<<<<<<< HEAD
 /* ---- Trigger ---- */
 
+=======
+/* ── Trigger button ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__trigger {
   width: 100%;
   display: flex;
@@ -41,10 +70,18 @@
   background: var(--bg-card-hover);
 }
 
+<<<<<<< HEAD
+=======
+/* Open trigger text colour (blue accent) */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item--open .faq-item__trigger {
   color: #1e40af;
 }
 
+<<<<<<< HEAD
+=======
+/* ── Question number badge ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__number {
   flex-shrink: 0;
   width: 26px;
@@ -60,16 +97,28 @@
   transition: background 0.25s, color 0.25s, transform 0.25s;
 }
 
+<<<<<<< HEAD
+=======
+/* Open badge: blue gradient background, slightly scaled */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item--open .faq-item__number {
   background: linear-gradient(135deg, #dbeafe, #bfdbfe);
   color: #1e40af;
   transform: scale(1.05);
 }
 
+<<<<<<< HEAD
+=======
+/* ── Question text ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__question {
   flex: 1;
 }
 
+<<<<<<< HEAD
+=======
+/* ── View count ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__views {
   flex-shrink: 0;
   font-size: 0.75rem;
@@ -78,6 +127,10 @@
   white-space: nowrap;
 }
 
+<<<<<<< HEAD
+=======
+/* ── Chevron icon container ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__icon {
   flex-shrink: 0;
   width: 26px;
@@ -90,11 +143,20 @@
   transition: background 0.25s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+<<<<<<< HEAD
+=======
+/* Open state: blue background, chevron rotated 90° (the SVG path draws a
+   right-pointing chevron; rotating 90° makes it point down) */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item--open .faq-item__icon {
   background: #dbeafe;
   transform: rotate(90deg) scale(1.05);
 }
 
+<<<<<<< HEAD
+=======
+/* ── Chevron SVG ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__chevron {
   width: 14px;
   height: 14px;
@@ -106,8 +168,12 @@
   color: #1e40af;
 }
 
+<<<<<<< HEAD
 /* ---- Answer area ---- */
 
+=======
+/* ── Collapsible answer area ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__content {
   max-height: 0;
   overflow: hidden;
@@ -115,11 +181,19 @@
   opacity: 0;
 }
 
+<<<<<<< HEAD
+=======
+/* Open: set a large enough max-height so the answer text fits; opacity 1 */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item--open .faq-item__content {
   max-height: 600px;
   opacity: 1;
 }
 
+<<<<<<< HEAD
+=======
+/* ── Answer list ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__answer {
   list-style: none;
   margin: 0;
@@ -135,6 +209,10 @@
   margin-bottom: 6px;
 }
 
+<<<<<<< HEAD
+=======
+/* Bullet dot before each sentence */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-item__answer li::before {
   content: '';
   position: absolute;
@@ -151,6 +229,10 @@
   margin-bottom: 0;
 }
 
+<<<<<<< HEAD
+=======
+/* ── Responsive (≤640px) ── */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 @media (max-width: 640px) {
   .faq-item__trigger {
     padding: 12px 14px;
@@ -165,27 +247,53 @@
   }
 }
 
+<<<<<<< HEAD
+=======
+/* ── Dark mode overrides ── */
+
+/* Open card shadow colour */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .faq-item--open {
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
 }
 
+<<<<<<< HEAD
+=======
+/* Open trigger text */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .faq-item--open .faq-item__trigger {
   color: #818cf8;
 }
 
+<<<<<<< HEAD
+=======
+/* Open number badge — darker indigo gradient */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .faq-item--open .faq-item__number {
   background: linear-gradient(135deg, #312e81, #3730a3);
   color: #c7d2fe;
 }
 
+<<<<<<< HEAD
+=======
+/* Open chevron icon container */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .faq-item--open .faq-item__icon {
   background: #312e81;
 }
 
+<<<<<<< HEAD
+=======
+/* Open chevron colour */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .faq-item--open .faq-item__chevron {
   color: #818cf8;
 }
 
+<<<<<<< HEAD
+=======
+/* Bullet colour */
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .faq-item__answer li::before {
   background: #6366f1;
 }

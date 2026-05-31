@@ -29,7 +29,11 @@ router.post('/register', async (req, res) => {
     if (existing) {
       return res.status(409).json({ error: 'Email already registered' });
     }
+<<<<<<< HEAD
     const user = await User.create({ name, email, password, role: 'student' });
+=======
+    const user = await User.create({ name, email, password });
+>>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     setTokenCookie(res, token);
     res.status(201).json({ user });
