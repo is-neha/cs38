@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import NotificationBell from './NotificationBell';
 import './Navbar.css';
-
 function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +34,7 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         <div className="navbar-brand-wrapper">
-          <Link to="/" className="navbar-brand" onClick={closeMenu}>
+          <Link to={user ? "/home" : "/"} className="navbar-brand" onClick={closeMenu}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="navbar-logo">
               <circle cx="12" cy="12" r="10" />
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
@@ -43,7 +42,7 @@ function Navbar() {
             </svg>
             <span>FAQ Portal</span>
           </Link>
-          <Link to="/" className="navbar-brand-home" onClick={closeMenu}>Home</Link>
+          <Link to={user ? "/home" : "/"} className="navbar-brand-home" onClick={closeMenu}>Home</Link>
         </div>
         <div className="navbar-links">
           {user?.role === 'admin' && (
@@ -58,8 +57,8 @@ function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login" className="navbar-link" onClick={closeMenu}>Sign in</Link>
-              <Link to="/register" className="navbar-btn navbar-btn--primary" onClick={closeMenu}>Sign up</Link>
+              <Link to="/auth" className="navbar-link" onClick={closeMenu}>Sign in</Link>
+              <Link to="/auth" className="navbar-btn navbar-btn--primary" onClick={closeMenu}>Sign up</Link>
             </>
           )}
         </div>

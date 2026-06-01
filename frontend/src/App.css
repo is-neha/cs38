@@ -1,34 +1,23 @@
-<<<<<<< HEAD
-=======
 /*
  * App.css — Global styles for the application.
  *
  * Contents:
- *   - .app base layout for the root component
- *   - Autocomplete/autocorrect dropdown styles used by AutocorrectInput
- *     (positioned absolutely below the search input, with item hover/
- *     active states and a type indicator icon)
- *   - Dark mode is handled via [data-theme="dark"] on <html>, using CSS
- *     custom properties defined elsewhere (--bg-card, --border, etc.)
+ * - .app base layout for the root component
+ * - Autocomplete/autocorrect dropdown styles used by AutocorrectInput
+ * (positioned absolutely below the search input, with item hover/
+ * active states and a type indicator icon)
+ * - Dark mode is handled via [data-theme="dark"] on <html>, using CSS
+ * custom properties defined elsewhere (--bg-card, --border, etc.)
  *
  * Note: The autocomplete styles live here because they are applied
  * outside of FAQPage's component tree (portal-like positioning) and
  * need to be globally available.
  */
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .app {
   min-height: 100vh;
 }
 
-<<<<<<< HEAD
-/* ── Autocorrect dropdown ── */
-.autocorrect-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-=======
 /* ── Autocomplete dropdown ── */
 
 /* Wrapper — establishes the positioning context for the dropdown */
@@ -39,26 +28,11 @@
 }
 
 /* Dropdown list — positioned directly below the input, full width */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .autocorrect-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-<<<<<<< HEAD
-  z-index: 1000;
-  margin: 2px 0 0;
-  padding: 4px 0;
-  list-style: none;
-  background: var(--card-bg, #fff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-=======
   z-index: 9999;
   margin: 0;
   padding: 4px 0;
@@ -73,25 +47,10 @@
 }
 
 /* Each suggestion row */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .autocorrect-item {
   display: flex;
   align-items: center;
   gap: 8px;
-<<<<<<< HEAD
-  padding: 8px 14px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: var(--text, #1f2937);
-  transition: background 0.12s;
-}
-
-.autocorrect-item:hover,
-.autocorrect-item--active {
-  background: var(--hover-bg, #f3f4f6);
-}
-
-=======
   padding: 8px 52px;
   cursor: pointer;
   font-size: 0.875rem;
@@ -107,7 +66,6 @@
 }
 
 /* Type indicator icon column (📖 for FAQ, 💬 for community) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .autocorrect-type {
   flex-shrink: 0;
   font-size: 1rem;

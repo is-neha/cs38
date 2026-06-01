@@ -1,44 +1,36 @@
-<<<<<<< HEAD
-=======
 /*
  * FAQPage.css — Styles for the main FAQ page layout.
  *
  * Sections:
- *   - Page wrapper & gradient background layer
- *   - Header (badge, title, subtitle)
- *   - Search bar wrapper, input, voice button, clear button
- *   - Loading skeleton
- *   - Empty state (no results)
- *   - Results count indicator
- *   - Category cards grid and flat list
- *   - Card header (icon, title, question count badge)
- *   - Card body (scrollable questions area)
- *   - Footer
- *   - Shared animations (fadeSlideIn, cardIn, shimmer)
+ * - Page wrapper & gradient background layer
+ * - Header (badge, title, subtitle)
+ * - Search bar wrapper, input, voice button, clear button
+ * - Loading skeleton
+ * - Empty state (no results)
+ * - Results count indicator
+ * - Category cards grid and flat list
+ * - Card header (icon, title, question count badge)
+ * - Card body (scrollable questions area)
+ * - Footer
+ * - Shared animations (fadeSlideIn, cardIn, shimmer)
  *
  * Responsive breakpoints:
- *   - 768px  – reduced header margin
- *   - 640px  – smaller title/subtitle, single-column grid, smaller input
- *   - 480px  – even smaller title, tighter padding/icon positions
+ * - 768px  – reduced header margin
+ * - 640px  – smaller title/subtitle, single-column grid, smaller input
+ * - 480px  – even smaller title, tighter padding/icon positions
  *
  * Dark mode overrides use [data-theme="dark"] selectors.
  */
 
 /* ── Page wrapper ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-page {
   position: relative;
   min-height: 100vh;
   padding: 48px 20px 60px;
-<<<<<<< HEAD
-  overflow: hidden;
-}
-
-=======
+  overflow: hidden; /* Added from HEAD to prevent scrolling issues */
 }
 
 /* ── Decorative gradient background (fixed, no interaction) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-gradient {
   position: fixed;
   inset: 0;
@@ -75,21 +67,13 @@
   pointer-events: none;
 }
 
-<<<<<<< HEAD
-=======
 /* ── Content container ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-container {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-<<<<<<< HEAD
-/* ---- Header ---- */
-
-=======
 /* ── Header (badge, title, subtitle) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-header {
   text-align: center;
   margin-bottom: 44px;
@@ -108,14 +92,11 @@
   animation: fadeSlideIn 0.5s ease both;
 }
 
-<<<<<<< HEAD
-=======
 /* Dark mode overrides: badge background */
 [data-theme="dark"] .faq-badge {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
 }
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-title {
   font-size: 2.8rem;
   font-weight: 800;
@@ -126,10 +107,7 @@
   animation: fadeSlideIn 0.5s 0.1s ease both;
 }
 
-<<<<<<< HEAD
-=======
 /* Gradient text for the title */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-title__text {
   background: linear-gradient(135deg, #1e3a5f 0%, #4f46e5 50%, #0891b2 100%);
   -webkit-background-clip: text;
@@ -158,30 +136,19 @@
   border-color: var(--accent);
 }
 
-<<<<<<< HEAD
-/* ---- Search bar ---- */
-
-=======
 /* ── Search bar wrapper ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-search-wrapper {
   margin-bottom: 40px;
   animation: fadeSlideIn 0.5s 0.3s ease both;
   display: flex;
-<<<<<<< HEAD
-=======
   flex-direction: row-reverse;
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   gap: 10px;
   align-items: stretch;
   max-width: 760px;
   margin-left: auto;
   margin-right: auto;
-<<<<<<< HEAD
-=======
   position: relative;
   z-index: 10;
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .faq-search {
@@ -189,10 +156,7 @@
   flex: 1;
 }
 
-<<<<<<< HEAD
-=======
 /* Search icon positioned inside the input */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-search-icon {
   position: absolute;
   left: 22px;
@@ -204,10 +168,7 @@
   pointer-events: none;
 }
 
-<<<<<<< HEAD
-=======
 /* "New question" button */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-ask-btn {
   display: flex;
   align-items: center;
@@ -236,10 +197,7 @@
   transform: translateY(0);
 }
 
-<<<<<<< HEAD
-=======
 /* Search input field */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-search-input {
   width: 100%;
   padding: 18px 54px 18px 58px;
@@ -247,28 +205,17 @@
   border-radius: 16px;
   font-size: 1.05rem;
   font-family: inherit;
-<<<<<<< HEAD
-  /* FIX: Use theme variable instead of static light-rgba */
+  /* Retained HEAD fixes for theme variables */
   background: var(--bg-card); 
   backdrop-filter: blur(8px);
-  /* FIX: Ensure text matches primary theme color instead of a fixed light/dark mode variation */
   color: var(--text-primary); 
-=======
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  color: var(--text-secondary);
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   transition: all 0.3s;
   outline: none;
   box-shadow: var(--shadow-md);
 }
 
 .faq-search-input::placeholder {
-<<<<<<< HEAD
-  color: var(--text-muted);
-=======
-  color: var(--text-light);
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
+  color: var(--text-muted); /* Retained HEAD fix */
 }
 
 .faq-search-input:focus {
@@ -277,8 +224,6 @@
   box-shadow: 0 4px 24px rgba(99, 102, 241, 0.12);
 }
 
-<<<<<<< HEAD
-=======
 /* Dark mode overrides for the search input */
 [data-theme="dark"] .faq-search-input {
   background: var(--bg-card);
@@ -297,7 +242,6 @@
 }
 
 /* Clear (×) button — right inside the input */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-search-clear {
   position: absolute;
   right: 14px;
@@ -326,10 +270,7 @@
   height: 18px;
 }
 
-<<<<<<< HEAD
-=======
 /* Voice (mic) button */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-search-mic {
   position: absolute;
   right: 54px;
@@ -358,10 +299,7 @@
   height: 18px;
 }
 
-<<<<<<< HEAD
-=======
 /* Active listening state: red accent with pulsing shadow */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-search-mic--active {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
@@ -373,12 +311,7 @@
   50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 
-<<<<<<< HEAD
-/* ---- Loading skeleton ---- */
-
-=======
 /* ── Loading skeleton ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-loader {
   padding-top: 60px;
 }
@@ -424,10 +357,6 @@
   animation: shimmer 1.5s 0.2s infinite;
 }
 
-<<<<<<< HEAD
-/* ---- Empty state ---- */
-
-=======
 /* Dark mode skeleton colours */
 [data-theme="dark"] .faq-loader__bar,
 [data-theme="dark"] .faq-loader__header,
@@ -437,7 +366,6 @@
 }
 
 /* ── Empty state (no search results) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-empty {
   text-align: center;
   padding: 60px 20px;
@@ -485,10 +413,7 @@
   transform: translateY(-1px);
 }
 
-<<<<<<< HEAD
-=======
 /* ── Results count indicator (shown during search) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-results-count {
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -508,22 +433,14 @@
   flex-shrink: 0;
 }
 
-<<<<<<< HEAD
-/* ---- Category cards grid ---- */
-
-=======
 /* ── Category cards grid (default, non-searching view) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
 }
 
-<<<<<<< HEAD
-=======
 /* Card container */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-category-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -541,17 +458,12 @@
   transform: translateY(-2px);
 }
 
-<<<<<<< HEAD
-/* ---- Card header ---- */
-
-=======
 /* Dark mode card hover border */
 [data-theme="dark"] .faq-category-card:hover {
   border-color: var(--border-hover);
 }
 
 /* ── Card header (icon, category name, question count) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-category-card__header {
   display: flex;
   align-items: center;
@@ -564,10 +476,7 @@
   overflow: hidden;
 }
 
-<<<<<<< HEAD
-=======
 /* Subtle highlight overlay on the header gradient */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-category-card__header::after {
   content: '';
   position: absolute;
@@ -604,23 +513,15 @@
   z-index: 1;
 }
 
-<<<<<<< HEAD
-=======
 /* ── Card body (scrollable questions area) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-category-card__body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 480px;
   padding: 10px;
-<<<<<<< HEAD
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-=======
   scrollbar-width: none;        /* Firefox: hide scrollbar */
   -ms-overflow-style: none;     /* IE/Edge: hide scrollbar */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .faq-category-card__body > * + * {
@@ -628,18 +529,10 @@
 }
 
 .faq-category-card__body::-webkit-scrollbar {
-<<<<<<< HEAD
-  display: none;
-}
-
-/* ---- Search results list (flat) ---- */
-
-=======
   display: none;               /* Chrome/Safari: hide scrollbar */
 }
 
 /* ── Search results list (flat view, no grid) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-list {
   display: flex;
   flex-direction: column;
@@ -647,12 +540,7 @@
   animation: fadeSlideIn 0.3s ease both;
 }
 
-<<<<<<< HEAD
-/* ---- Footer ---- */
-
-=======
 /* ── Footer ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .faq-footer {
   text-align: center;
   margin-top: 56px;
@@ -673,12 +561,7 @@
   color: #4338ca;
 }
 
-<<<<<<< HEAD
-/* ---- Animations ---- */
-
-=======
 /* ── Shared animations ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -706,10 +589,6 @@
   100% { background-position: -200% 0; }
 }
 
-<<<<<<< HEAD
-/* ---- Responsive ---- */
-
-=======
 /* ── Responsive breakpoints ── */
 
 /* Tablet: reduce header bottom margin */
@@ -720,7 +599,6 @@
 }
 
 /* Mobile (small): shrink typography, single-column grid, smaller input */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 @media (max-width: 640px) {
   .faq-title {
     font-size: 2rem;
@@ -739,12 +617,6 @@
     padding: 8px;
   }
   .faq-search-input {
-<<<<<<< HEAD
-    padding: 16px 44px 16px 48px;
-    font-size: 0.95rem;
-  }
-}
-=======
     padding: 14px 44px 14px 48px;
     font-size: 0.95rem;
   }
@@ -773,4 +645,3 @@
     height: 30px;
   }
 }
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2

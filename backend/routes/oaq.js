@@ -1,9 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-<<<<<<< HEAD
-=======
 const Groq = require('groq-sdk');
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 const OAQ = require('../models/OAQ');
 const FAQ = require('../models/FAQ');
 const Notification = require('../models/Notification');
@@ -11,17 +8,15 @@ const { auth } = require('../middleware/auth');
 const { admin } = require('../middleware/admin');
 
 const router = express.Router();
-<<<<<<< HEAD
-=======
 const groqApiKey = process.env.GROQ_API_KEY;
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
 /* ── List OAQs ── */
 router.get('/', async (req, res) => {
   try {
     const { status, sort } = req.query;
-<<<<<<< HEAD
     let filter = {};
+    
+    // Kept the advanced filtering from HEAD
     if (status && ['open', 'approved', 'promoted', 'rejected'].includes(status)) {
       filter.status = status;
     } else {
@@ -32,15 +27,12 @@ router.get('/', async (req, res) => {
           { status: 'open', 'answers.answeredByAdmin': true },
         ]}
       ];
-=======
-    const filter = {};
-    if (status && ['open', 'approved', 'promoted', 'rejected'].includes(status)) {
-      filter.status = status;
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     }
+    
     let sortOpt = { createdAt: -1 };
     if (sort === 'votes') sortOpt = { createdAt: -1 };
     if (sort === 'trending') sortOpt = { createdAt: -1 };
+    
     const oaqs = await OAQ.find(filter)
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name')
@@ -103,8 +95,7 @@ router.post('/', auth, async (req, res) => {
       return matched / allQWords.length;
     };
 
-<<<<<<< HEAD
-    /* fuzzy char-level score for out-of-scope detection */
+    /* HEAD: fuzzy char-level score for out-of-scope detection */
     const fuzzyTerms = words.map(w => new RegExp(w.split('').join('.*'), 'i'));
     const fuzzyScore = (text) => {
       const lower = text.toLowerCase();
@@ -112,8 +103,6 @@ router.post('/', auth, async (req, res) => {
       return matches.length / words.length;
     };
 
-=======
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     const allDupes = [
       ...faqDupes.flatMap(c =>
         c.questions
@@ -126,8 +115,7 @@ router.post('/', auth, async (req, res) => {
     ].sort((a, b) => b.score - a.score);
     const topDupes = allDupes.slice(0, 1);
 
-<<<<<<< HEAD
-    /* out-of-scope detection */
+    /* HEAD: out-of-scope detection */
     let outOfScope = false;
     if (allDupes.length === 0) {
       const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
@@ -139,11 +127,8 @@ router.post('/', auth, async (req, res) => {
       outOfScope = bestFuzzy < 0.2;
     }
 
-    if (topDupes.length > 0) {
-      return res.status(409).json({ duplicates: topDupes, outOfScope });
-=======
     if (topDupes.length > 0 && groqApiKey) {
-      /* Use Groq AI to decide if it's truly a duplicate */
+      /* INCOMING: Use Groq AI to decide if it's truly a duplicate */
       const groq = new Groq({ apiKey: groqApiKey });
       const dup = topDupes[0];
       const prompt = `You are comparing two questions to decide if they are asking the same thing.
@@ -163,6 +148,7 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
         response_format: { type: 'json_object' },
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+      
       if (result.isDuplicate) {
         /* Notify original asker if duplicate is an OAQ */
         if (dup.source === 'OAQ' && dup.id) {
@@ -177,12 +163,11 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
             });
           }
         }
-        return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '' });
+        return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '', outOfScope });
       }
     } else if (topDupes.length > 0) {
       /* No Groq key — fall back to word-overlap blocking */
-      return res.status(409).json({ duplicates: topDupes });
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
+      return res.status(409).json({ duplicates: topDupes, outOfScope });
     }
 
     const oaq = await OAQ.create({
@@ -193,9 +178,7 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
     });
     await oaq.populate('submittedBy', 'name');
 
-<<<<<<< HEAD
-=======
-    /* ── Similarity-frequency auto-promote ── */
+    /* INCOMING: Similarity-frequency auto-promote */
     const similarOpen = await OAQ.find({
       _id: { $ne: oaq._id },
       question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
@@ -269,7 +252,6 @@ Reply ONLY with JSON: { "sameTopic": true/false }`,
       }
     }
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     res.status(201).json(oaq);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -287,7 +269,8 @@ router.post('/:id/answers', auth, async (req, res) => {
     if (oaq.status === 'promoted' || oaq.status === 'rejected') {
       return res.status(400).json({ error: 'Cannot answer a promoted or rejected question' });
     }
-<<<<<<< HEAD
+    
+    /* HEAD: Validations */
     if (oaq.status === 'approved' && req.user.role !== 'admin') {
       return res.status(400).json({ error: 'This question is closed for new answers' });
     }
@@ -295,11 +278,8 @@ router.post('/:id/answers', auth, async (req, res) => {
       return res.status(400).json({ error: 'You cannot answer your own question' });
     }
 
+    /* HEAD: Add answer with admin tracking */
     oaq.answers.push({ text: text.trim(), submittedBy: req.user._id, answeredByAdmin: req.user.role === 'admin' });
-=======
-
-    oaq.answers.push({ text: text.trim(), submittedBy: req.user._id });
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     await oaq.save();
 
     if (oaq.submittedBy.toString() !== req.user._id.toString()) {
@@ -311,9 +291,7 @@ router.post('/:id/answers', auth, async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-=======
-    /* Notify other answerers about the follow-up */
+    /* INCOMING: Notify other answerers about the follow-up */
     const answererIds = [...new Set(
       oaq.answers
         .filter(a => a.submittedBy.toString() !== req.user._id.toString())
@@ -330,7 +308,6 @@ router.post('/:id/answers', auth, async (req, res) => {
       }
     }
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     const updated = await OAQ.findById(oaq._id)
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
@@ -501,10 +478,10 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
 
     const acceptedAnswer = oaq.answers.find(a => a.accepted);
     const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
-<<<<<<< HEAD
+    
+    /* HEAD: Mark as verified by admin */
     if (bestAnswer) bestAnswer.verifiedByAdmin = true;
-=======
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
+    
     const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
     const catName = oaq.category || 'Community Questions';

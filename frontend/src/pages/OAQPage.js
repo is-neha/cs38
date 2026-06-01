@@ -1,25 +1,20 @@
-<<<<<<< HEAD
-=======
 /*
  * OAQPage.js — Community Q&A Page
  *
  * OVERALL PURPOSE:
- *   This page lets users ask public questions (OAQ = Openly Asked Questions),
- *   view questions submitted by others, post answers, upvote/downvote both
- *   questions and answers, and report inappropriate content. It also checks
- *   for duplicate questions using AI before submission.
+ * This page lets users ask public questions (OAQ = Openly Asked Questions),
+ * view questions submitted by others, post answers, upvote/downvote both
+ * questions and answers, and report inappropriate content. It also checks
+ * for duplicate questions using AI before submission.
  *
  * KEY CONCEPTS:
- *   - Questions have statuses: open, approved, promoted, rejected.
- *   - Voting uses separate upvote/downvote counts (not a single net score).
- *   - Answers are shown inline when a question is expanded.
- *   - A "related questions" section (now removed) used to surface similar
- *     FAQs/OAQs; the fetchRelated function still exists but is unused in the UI.
- *   - A report modal lets users flag questions or answers for moderation.
- *   - The sort order (trending / newest / top voted) is computed client-side.
+ * - Questions have statuses: open, approved, promoted, rejected.
+ * - Voting uses separate upvote/downvote counts (not a single net score).
+ * - Answers are shown inline when a question is expanded.
+ * - A report modal lets users flag questions or answers for moderation.
+ * - The sort order (trending / newest / top voted) is computed client-side.
  */
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -29,28 +24,6 @@ import './OAQPage.css';
 function OAQPage() {
   const { user, authFetch } = useAuth();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [oaqs, setOaqs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [faqCategories, setFaqCategories] = useState([]);
-  const [newQuestion, setNewQuestion] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [newCategory, setNewCategory] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [duplicates, setDuplicates] = useState([]);
-  const [aiReason, setAiReason] = useState('');
-  const [sort, setSort] = useState('trending');
-  const [expandedId, setExpandedId] = useState(null);
-  const [newAnswer, setNewAnswer] = useState('');
-  const [related, setRelated] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [reportTarget, setReportTarget] = useState(null);
-  const [reportReason, setReportReason] = useState('');
-  const [reportSubmitting, setReportSubmitting] = useState(false);
-  const [notification, setNotification] = useState('');
-
-=======
 
   // ----- Core state -----
   const [oaqs, setOaqs] = useState([]);            // All fetched OAQs from the API
@@ -71,12 +44,6 @@ function OAQPage() {
   const [expandedId, setExpandedId] = useState(null);       // ID of the currently expanded question
   const [newAnswer, setNewAnswer] = useState('');           // Text for the answer being written
 
-  // ----- Related questions (now removed from UI) -----
-  // The related questions section was previously shown inside the expanded
-  // answer area. It fetched FAQ / OAQ matches from the AI endpoint.
-  // The fetchRelated function and related state remain for potential re-use.
-  const [related, setRelated] = useState(null);
-
   // ----- Form visibility & reporting -----
   const [showForm, setShowForm] = useState(false);              // Toggle new-question form
   const [reportTarget, setReportTarget] = useState(null);       // { type, id, oaqId } being reported
@@ -86,7 +53,6 @@ function OAQPage() {
 
   // ----- Fetch all OAQs -----
   // Re-fetches `/api/oaq?sort=...` whenever the sort value changes.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const fetchOaqs = useCallback(() => {
     setLoading(true);
     fetch(`/api/oaq?sort=${sort}`)
@@ -97,10 +63,7 @@ function OAQPage() {
 
   useEffect(() => { fetchOaqs(); }, [fetchOaqs]);
 
-<<<<<<< HEAD
-=======
   // ----- Fetch FAQ categories (used in the category <select>) -----
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   useEffect(() => {
     fetch('/api/faqs')
       .then(res => res.json())
@@ -111,13 +74,10 @@ function OAQPage() {
       .catch(() => {});
   }, []);
 
-<<<<<<< HEAD
-=======
   // ----- POST a new question (with duplicate detection) -----
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const handleSubmit = async e => {
     e.preventDefault();
-    if (!user) return navigate('/login');
+    if (!user) return navigate('/auth');
     setError('');
     setDuplicates([]);
     setAiReason('');
@@ -129,20 +89,16 @@ function OAQPage() {
         body: JSON.stringify({ question: newQuestion, description: newDescription, category: newCategory }),
       });
       const data = await res.json();
-<<<<<<< HEAD
-=======
+      
       // 409 = duplicates found — AI compares the question against existing FAQ / OAQ entries
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
       if (res.status === 409) {
         setDuplicates(data.duplicates || []);
         setAiReason(data.aiReason || '');
         return;
       }
       if (!res.ok) { setError(data.error); return; }
-<<<<<<< HEAD
-=======
+      
       // On success reset form and refresh the list
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
       setNewQuestion('');
       setNewDescription('');
       setNewCategory('');
@@ -152,29 +108,11 @@ function OAQPage() {
     finally { setSubmitting(false); }
   };
 
-<<<<<<< HEAD
-=======
-  // ----- Fetch related questions (REMOVED from UI) -----
-  // Previously this was called when expanding a question and rendered the
-  // `.oaq-related` block with links to similar FAQ / OAQ items.
-  // The function and `related` state are preserved but currently unused.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
-  const fetchRelated = async (question) => {
-    const res = await fetch(`/api/ai/related?q=${encodeURIComponent(question)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.faq?.length || data.oaq?.length) setRelated(data);
-    }
-  };
-
-<<<<<<< HEAD
-=======
   // ----- Voting on a question (upvote / downvote) -----
   // Sends { value: 1 | -1 } to `/api/oaq/:id/vote`.
   // The server returns the updated OAQ object; we replace it in local state.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const handleVote = async (id, value) => {
-    if (!user) return navigate('/login');
+    if (!user) return navigate('/auth');
     const res = await authFetch(`/api/oaq/${id}/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -186,37 +124,23 @@ function OAQPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
   // ----- Expand / collapse answers for a question -----
-  // When opening: POST to increment view count, fetch related questions.
-  // When closing: clear related questions.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
+  // When opening: POST to increment view count
   const toggleExpand = id => {
     const isOpening = expandedId !== id;
     setExpandedId(prev => prev === id ? null : id);
     setNewAnswer('');
     if (isOpening) {
       fetch(`/api/oaq/${id}/view`, { method: 'POST' }).catch(() => {});
-<<<<<<< HEAD
-=======
       // Optimistically increment view count locally
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
       setOaqs(prev => prev.map(o => o._id === id ? { ...o, views: (o.views || 0) + 1 } : o));
-      const oaq = oaqs.find(o => o._id === id);
-      if (oaq) fetchRelated(oaq.question);
-    } else {
-      setRelated(null);
     }
   };
 
-<<<<<<< HEAD
-=======
   // ----- Submit an answer to a question -----
   // POST to `/api/oaq/:oaqId/answers`. Server returns updated OAQ with new answer.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const submitAnswer = async (oaqId) => {
-    if (!user) return navigate('/login');
+    if (!user) return navigate('/auth');
     if (!newAnswer.trim()) return;
     const res = await authFetch(`/api/oaq/${oaqId}/answers`, {
       method: 'POST',
@@ -230,13 +154,10 @@ function OAQPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
   // ----- Voting on an answer -----
   // Same pattern as question voting but scoped to a specific answer.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const handleAnswerVote = async (oaqId, answerId, value) => {
-    if (!user) return navigate('/login');
+    if (!user) return navigate('/auth');
     const res = await authFetch(`/api/oaq/${oaqId}/answers/${answerId}/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -248,13 +169,10 @@ function OAQPage() {
     }
   };
 
-<<<<<<< HEAD
-=======
   // ----- Submit a report (question or answer) -----
   // Shows a modal; POST to `/api/reports` with target info.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const handleReport = async () => {
-    if (!user) return navigate('/login');
+    if (!user) return navigate('/auth');
     if (!reportReason.trim()) return;
     setReportSubmitting(true);
     try {
@@ -262,11 +180,7 @@ function OAQPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-<<<<<<< HEAD
-          targetType: reportTarget.type,
-=======
           targetType: reportTarget.type,   // 'question' | 'answer'
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
           targetId: reportTarget.id,
           oaqId: reportTarget.oaqId,
           reason: reportReason,
@@ -286,16 +200,6 @@ function OAQPage() {
     setReportSubmitting(false);
   };
 
-<<<<<<< HEAD
-  const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-
-  const getScore = o => (o.upvotes || 0) * 3 + (o.views || 0) * 0.5 + (o.answers?.length || 0) * 2;
-
-  const sortedOaqs = [...oaqs].sort((a, b) => {
-    if (sort === 'trending') return getScore(b) - getScore(a);
-    if (sort === 'votes') return (b.upvotes || 0) - (a.upvotes || 0);
-    return new Date(b.createdAt) - new Date(a.createdAt);
-=======
   // ----- Format a date for display (Indian locale, e.g. "15 May 2026") -----
   const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -308,42 +212,29 @@ function OAQPage() {
     if (sort === 'trending') return getScore(b) - getScore(a);
     if (sort === 'votes') return (b.upvotes || 0) - (a.upvotes || 0);
     return new Date(b.createdAt) - new Date(a.createdAt); // 'newest'
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   });
 
   return (
     <div className="oaq-page">
       <div className="oaq-container">
-<<<<<<< HEAD
-=======
+        
         {/* ----- Page header ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         <div className="oaq-header">
           <h1 className="oaq-title">Community Q&A</h1>
           <p className="oaq-subtitle">Ask questions, get answers from the community, and vote on the best responses.</p>
         </div>
 
-<<<<<<< HEAD
-        {/* Submit question */}
-        <div className="oaq-submit-card">
-          <div className="oaq-submit-header">
-            <h2>Ask a question</h2>
-=======
         {/* ----- Submit question card / form ----- */}
         <div className="oaq-submit-card">
           <div className="oaq-submit-header">
             <h2>Ask a question</h2>
             {/* Toggle button — shows either "+ New question" or "Cancel" */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
             {!showForm && <button className="oaq-btn oaq-btn--primary" onClick={() => setShowForm(true)}>+ New question</button>}
             {showForm && <button className="oaq-btn oaq-btn--ghost" onClick={() => { setShowForm(false); setDuplicates([]); setError(''); }}>Cancel</button>}
           </div>
           {showForm && (
             <form onSubmit={handleSubmit}>
-<<<<<<< HEAD
-=======
               {/* Uses AutocorrectInput for AI-powered spell/grammar correction on the question */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
               <AutocorrectInput
                 as="textarea"
                 className="oaq-textarea"
@@ -352,10 +243,7 @@ function OAQPage() {
                 onChange={e => setNewQuestion(e.target.value)}
                 rows={3}
               />
-<<<<<<< HEAD
-=======
               {/* Optional description textarea */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
               <textarea
                 className="oaq-textarea oaq-textarea--sm"
                 placeholder="Add more details"
@@ -364,10 +252,7 @@ function OAQPage() {
                 rows={2}
                 style={{ marginTop: 8 }}
               />
-<<<<<<< HEAD
-=======
               {/* Category dropdown */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
               <div className="oaq-category-row">
                 <select
                   className="oaq-select"
@@ -379,10 +264,8 @@ function OAQPage() {
                   <option value="Other">Other</option>
                 </select>
               </div>
-<<<<<<< HEAD
-=======
+              
               {/* Duplicate warning block (shown when server returns 409) */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
               {duplicates.length > 0 ? (
                 <div className="oaq-error" style={{ border: '1.5px solid var(--danger)', background: 'var(--danger-bg)' }}>
                   <strong>⚠️ This question already exists:</strong>
@@ -399,6 +282,7 @@ function OAQPage() {
               ) : error ? (
                 <div className="oaq-error">{error}</div>
               ) : null}
+              
               <button className="oaq-btn oaq-btn--primary" type="submit" disabled={submitting || !newQuestion.trim()}>
                 {submitting ? 'Submitting…' : 'Submit question'}
               </button>
@@ -406,11 +290,7 @@ function OAQPage() {
           )}
         </div>
 
-<<<<<<< HEAD
-        {/* Sort */}
-=======
         {/* ----- Sort toolbar ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         <div className="oaq-toolbar">
           <span className="oaq-count">{oaqs.length} question{oaqs.length !== 1 ? 's' : ''}</span>
           <div className="oaq-sort">
@@ -420,11 +300,7 @@ function OAQPage() {
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* OAQ list */}
-=======
         {/* ----- OAQ list (loading, empty, or populated) ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         {loading ? (
           <div className="oaq-loader">Loading…</div>
         ) : oaqs.length === 0 ? (
@@ -432,26 +308,20 @@ function OAQPage() {
         ) : (
           <div className="oaq-list">
             {sortedOaqs.map(oaq => (
-<<<<<<< HEAD
-              <div key={oaq._id} className={`oaq-card ${oaq.status === 'approved' ? 'oaq-card--approved' : ''} ${oaq.status === 'promoted' ? 'oaq-card--promoted' : ''}`}>
-=======
               /*
                * Each question card:
-               *  - Gets special left border (oaq-card--approved / oaq-card--promoted)
-               *    based on its moderation status.
-               *  - Contains a vote column, body, and expandable answers section.
+               * - Gets special left border (oaq-card--approved / oaq-card--promoted)
+               * based on its moderation status.
+               * - Contains a vote column, body, and expandable answers section.
                */
               <div key={oaq._id} className={`oaq-card ${oaq.status === 'approved' ? 'oaq-card--approved' : ''} ${oaq.status === 'promoted' ? 'oaq-card--promoted' : ''}`}>
+                
                 {/* ----- Vote column (question level) ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                 <div className="oaq-card__vote">
                   <button className="oaq-vote-btn oaq-vote-btn--up" onClick={() => handleVote(oaq._id, 1)} title="Upvote">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m18 15-6-6-6 6"/></svg>
                   </button>
-<<<<<<< HEAD
-=======
                   {/* Shows upvote / downvote counts stacked vertically */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                   <span className="oaq-vote-split">
                     <span className="oaq-vote-up">{oaq.upvotes}</span>
                     <span className="oaq-vote-down">{oaq.downvotes}</span>
@@ -460,25 +330,18 @@ function OAQPage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m6 9 6 6 6-6"/></svg>
                   </button>
                 </div>
-<<<<<<< HEAD
-                <div className="oaq-card__body">
-                  <div className="oaq-card__top">
-                    <h3 className="oaq-card__question">{oaq.question}</h3>
-=======
+                
                 {/* ----- Card body ----- */}
                 <div className="oaq-card__body">
                   <div className="oaq-card__top">
                     <h3 className="oaq-card__question">{oaq.question}</h3>
                     {/* Status badge: open / approved / promoted / rejected */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                     <span className={`oaq-status oaq-status--${oaq.status}`}>{oaq.status}</span>
                   </div>
                   {oaq.description && <p className="oaq-card__desc">{oaq.description}</p>}
                   {oaq.category && <span className="oaq-card__cat">{oaq.category}</span>}
-<<<<<<< HEAD
-=======
+                  
                   {/* Meta row: author, date, views, answer count, report button */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                   <div className="oaq-card__meta">
                     <span>{oaq.submittedBy?.name || 'Anonymous'}</span>
                     <span>{formatDate(oaq.createdAt)}</span>
@@ -498,10 +361,8 @@ function OAQPage() {
                       </button>
                     )}
                   </div>
-<<<<<<< HEAD
-=======
+                  
                   {/* Expand / collapse answers toggle; chevron rotates 90° when open */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                   <button className="oaq-card__expand" onClick={() => toggleExpand(oaq._id)}>
                     {expandedId === oaq._id ? 'Hide answers' : `View ${oaq.answers.length} answer${oaq.answers.length !== 1 ? 's' : ''}`}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`oaq-chevron ${expandedId === oaq._id ? 'open' : ''}`}>
@@ -509,23 +370,17 @@ function OAQPage() {
                     </svg>
                   </button>
 
-<<<<<<< HEAD
-=======
                   {/* ----- Answers section (shown when expanded) ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                   {expandedId === oaq._id && (
                     <div className="oaq-answers">
                       {oaq.answers.length === 0 && <p className="oaq-answers__empty">No answers yet. Be the first to respond!</p>}
                       {oaq.answers.map(ans => (
-<<<<<<< HEAD
-=======
                         /*
                          * Each answer row:
-                         *  - Has its own vote column (smaller buttons).
-                         *  - Accepted answers get a green background and ✓ badge.
-                         *  - Also has a report button for authenticated users.
+                         * - Has its own vote column (smaller buttons).
+                         * - Accepted answers get a green background and ✓ badge.
+                         * - Also has a report button for authenticated users.
                          */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                         <div key={ans._id} className={`oaq-answer ${ans.accepted ? 'oaq-answer--accepted' : ''}`}>
                           <div className="oaq-answer__vote">
                             <button className="oaq-vote-btn oaq-vote-btn--sm oaq-vote-btn--up" onClick={() => handleAnswerVote(oaq._id, ans._id, 1)}>
@@ -544,12 +399,13 @@ function OAQPage() {
                             <div className="oaq-answer__meta">
                               <span>{ans.submittedBy?.name || 'Anonymous'}</span>
                               <span>{formatDate(ans.createdAt)}</span>
-<<<<<<< HEAD
+                              
+                              {/* RESCUED FROM HEAD: Correct rendering of admin badges */}
                               {ans.verifiedByAdmin && <span className="oaq-answer__accepted-badge">✅ Verified by admin</span>}
                               {ans.answeredByAdmin && <span className="oaq-answer__accepted-badge" style={{ background: '#eef2ff', color: '#6366f1' }}>✅ Answered by admin</span>}
-=======
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
+                              
                               {ans.accepted && <span className="oaq-answer__accepted-badge">✓ Accepted</span>}
+                              
                               {user && (
                                 <button
                                   className="oaq-report-btn oaq-report-btn--sm"
@@ -568,30 +424,8 @@ function OAQPage() {
                         </div>
                       ))}
 
-<<<<<<< HEAD
-                      {/* Related questions */}
-                      {related && (
-                        <div className="oaq-related">
-                          <strong>Related questions:</strong>
-                          {related.faq?.length > 0 && related.faq.map(cat => cat.questions.map((item, i) => (
-                            <div key={i} className="oaq-related-item" onClick={() => navigate('/faq')}>
-                              📖 {item.q}
-                            </div>
-                          )))}
-                          {related.oaq?.length > 0 && related.oaq.map(o => (
-                            <div key={o._id} className="oaq-related-item" onClick={() => { setExpandedId(o._id); fetchRelated(o.question); }}>
-                              💬 {o.question}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
+                      {/* ----- Answer submission form (Rescued strict logic from HEAD) ----- */}
                       {oaq.status !== 'promoted' && oaq.status !== 'rejected' && oaq.status !== 'approved' && user?._id !== oaq.submittedBy?._id && (
-=======
-                      {/* ----- Answer submission form ----- */}
-                      {/* Hidden if the question is promoted or rejected (moderation lock) */}
-                      {oaq.status !== 'promoted' && oaq.status !== 'rejected' && (
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                         <div className="oaq-answer-form">
                           <textarea
                             className="oaq-textarea oaq-textarea--sm"
@@ -605,21 +439,14 @@ function OAQPage() {
                           </button>
                         </div>
                       )}
-<<<<<<< HEAD
+                      
+                      {/* RESCUED FROM HEAD: Explain to the user why they cannot answer the question */}
                       {(oaq.status === 'approved' || user?._id === oaq.submittedBy?._id) && (
                         <p className="oaq-answers__empty" style={{ marginTop: 12 }}>
                           {user?._id === oaq.submittedBy?._id ? 'You cannot answer your own question' : 'This question is closed for new answers'}
                         </p>
                       )}
-=======
 
-                      {/* ----- Related questions section (REMOVED) ----- */}
-                      {/* Previously rendered here: <div className="oaq-related"> listing
-                          FAQ / OAQ matches returned by fetchRelated(). It showed similar
-                          questions to help users find existing answers before posting new ones.
-                          The related state and fetchRelated function still exist but this UI
-                          block has been removed. */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
                     </div>
                   )}
                 </div>
@@ -629,11 +456,7 @@ function OAQPage() {
         )}
       </div>
 
-<<<<<<< HEAD
-      {/* Report modal */}
-=======
       {/* ----- Report modal overlay ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
       {reportTarget && (
         <div className="oaq-report-overlay" onClick={() => { setReportTarget(null); setReportReason(''); }}>
           <div className="oaq-report-modal" onClick={e => e.stopPropagation()}>
@@ -660,10 +483,7 @@ function OAQPage() {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
       {/* ----- Toast notification (auto-dismissed on click) ----- */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
       {notification && (
         <div className="oaq-toast" onClick={() => setNotification('')}>
           {notification}

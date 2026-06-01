@@ -1,34 +1,32 @@
-<<<<<<< HEAD
-=======
 /*
  * OAQPage.css — Community Q&A Page Styles
  *
  * OVERALL PURPOSE:
- *   Styles the Community Q&A page including the question submission card,
- *   the question list (OAQ cards with voting columns), expandable answer
- *   sections, answer forms, a report modal overlay, a toast notification,
- *   and dark-mode overrides.
+ * Styles the Community Q&A page including the question submission card,
+ * the question list (OAQ cards with voting columns), expandable answer
+ * sections, answer forms, a report modal overlay, a toast notification,
+ * and dark-mode overrides.
  *
  * LAYOUT APPROACH:
- *   - Uses a max-width container (800px) centered on the page.
- *   - Each OAQ question is displayed as a horizontal card with a narrow
- *     voting column on the left and the body content on the right.
- *   - Answers inside an expanded card use a similar vote-column layout
- *     but with smaller controls.
- *   - The report modal is a fixed overlay centered on the viewport.
- *   - The toast notification is fixed at the bottom-center.
+ * - Uses a max-width container (800px) centered on the page.
+ * - Each OAQ question is displayed as a horizontal card with a narrow
+ * voting column on the left and the body content on the right.
+ * - Answers inside an expanded card use a similar vote-column layout
+ * but with smaller controls.
+ * - The report modal is a fixed overlay centered on the viewport.
+ * - The toast notification is fixed at the bottom-center.
  *
  * RESPONSIVE BEHAVIOR:
- *   - The page uses CSS custom properties (var(--...)) for theming.
- *   - No explicit @media breakpoints are defined in this file; layout
- *     responsiveness is handled by flexbox wrapping and percentage widths.
- *   - On narrow viewports the container's padding shrinks, and long text
- *     wraps naturally inside flex children (min-width: 0 on .oaq-card__body).
+ * - The page uses CSS custom properties (var(--...)) for theming.
+ * - No explicit @media breakpoints are defined in this file; layout
+ * responsiveness is handled by flexbox wrapping and percentage widths.
+ * - On narrow viewports the container's padding shrinks, and long text
+ * wraps naturally inside flex children (min-width: 0 on .oaq-card__body).
  *
  * DARK MODE:
- *   - Overrides are scoped to [data-theme="dark"] and adjust specific
- *     elements (promoted cards, related items, answer backgrounds, etc.)
- *     to darker color values.
+ * - Overrides are scoped to [data-theme="dark"] and adjust specific
+ * elements (promoted cards, related items, answer backgrounds, etc.)
+ * to darker color values.
  */
 
 /* ============================================================
@@ -36,7 +34,6 @@
    ============================================================ */
 
 /* Full-page wrapper: fills viewport minus header height, adds scroll padding */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-page {
   min-height: calc(100vh - 56px);
   padding: 40px 20px 60px;
@@ -44,22 +41,16 @@
   z-index: 1;
 }
 
-<<<<<<< HEAD
-=======
 /* Centered content column — max 800px wide */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-container {
   max-width: 800px;
   margin: 0 auto;
 }
 
-<<<<<<< HEAD
-=======
 /* ============================================================
    HEADER (title + subtitle)
    ============================================================ */
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-header {
   text-align: center;
   margin-bottom: 32px;
@@ -77,13 +68,9 @@
   color: var(--text-muted);
 }
 
-<<<<<<< HEAD
-/* ---- Submit ---- */
-=======
 /* ============================================================
    SUBMIT QUESTION CARD
    ============================================================ */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
 .oaq-submit-card {
   background: var(--bg-card);
@@ -101,10 +88,7 @@
   margin: 0;
 }
 
-<<<<<<< HEAD
-=======
 /* Header row: "Ask a question" label + action button */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-submit-header {
   display: flex;
   justify-content: space-between;
@@ -112,12 +96,9 @@
   margin-bottom: 12px;
 }
 
-<<<<<<< HEAD
-=======
 /* ----- Textareas & inputs ----- */
 
 /* Shared style for all textareas in the OAQ page */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-textarea {
   width: 100%;
   padding: 12px 14px;
@@ -136,18 +117,12 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-<<<<<<< HEAD
-=======
 /* Smaller textarea variant (description, answer input) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-textarea--sm {
   min-height: 60px;
 }
 
-<<<<<<< HEAD
-=======
 /* Error/duplicate warning box */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-error {
   background: var(--danger-bg);
   color: var(--danger);
@@ -157,11 +132,8 @@
   margin-top: 10px;
 }
 
-<<<<<<< HEAD
-=======
 /* ----- Buttons ----- */
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-btn {
   padding: 10px 22px;
   border-radius: 10px;
@@ -183,20 +155,14 @@
   cursor: not-allowed;
 }
 
-<<<<<<< HEAD
-=======
 /* Primary accent button (submit, submit report) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-btn--primary {
   background: var(--accent-gradient);
   color: white;
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
 }
 
-<<<<<<< HEAD
-=======
 /* Secondary button (post answer) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-btn--secondary {
   background: var(--accent-light);
   color: var(--accent);
@@ -206,9 +172,6 @@
   background: var(--accent-light);
 }
 
-<<<<<<< HEAD
-/* ---- Toolbar ---- */
-=======
 /* Ghost button (cancel actions) */
 .oaq-btn--ghost {
   background: none;
@@ -248,7 +211,6 @@
 /* ============================================================
    SORT TOOLBAR
    ============================================================ */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
 .oaq-toolbar {
   display: flex;
@@ -257,20 +219,14 @@
   margin-bottom: 16px;
 }
 
-<<<<<<< HEAD
-=======
 /* Question count label */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-count {
   font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
-<<<<<<< HEAD
-=======
 /* Segmented button group for sort */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-sort {
   display: flex;
   gap: 4px;
@@ -292,23 +248,16 @@
   transition: all 0.2s;
 }
 
-<<<<<<< HEAD
-=======
 /* Active sort button gets a card-like elevation */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-sort-btn.active {
   background: var(--bg-card);
   color: var(--text-primary);
   box-shadow: var(--shadow-sm);
 }
 
-<<<<<<< HEAD
-/* ---- Loading & Empty ---- */
-=======
 /* ============================================================
    LOADING & EMPTY STATES
    ============================================================ */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
 .oaq-loader {
   text-align: center;
@@ -324,13 +273,9 @@
   font-size: 0.95rem;
 }
 
-<<<<<<< HEAD
-/* ---- OAQ list ---- */
-=======
 /* ============================================================
    OAQ LIST
    ============================================================ */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
 .oaq-list {
   display: flex;
@@ -338,15 +283,10 @@
   gap: 12px;
 }
 
-<<<<<<< HEAD
-.oaq-card {
-  display: flex;
-=======
 /* ----- Individual question card ----- */
 
 .oaq-card {
   display: flex;                   /* Vote column left, body right */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -358,45 +298,27 @@
   box-shadow: var(--shadow-md);
 }
 
-<<<<<<< HEAD
-=======
 /* Approved status: green left border */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-card--approved {
   border-left: 3px solid var(--success);
 }
 
-<<<<<<< HEAD
-=======
 /* Promoted status: accent left border + light background */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-card--promoted {
   border-left: 3px solid var(--accent);
   background: #f8faff;
 }
 
-<<<<<<< HEAD
-/* ---- Vote column ---- */
-
-.oaq-card__vote {
-  display: flex;
-  flex-direction: column;
-=======
 /* ----- Vote column (question level) ----- */
 
 .oaq-card__vote {
   display: flex;
   flex-direction: column;          /* Upvote arrow → counts → downvote arrow */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   align-items: center;
   gap: 4px;
   padding: 14px 10px;
   background: var(--bg-card-hover);
-<<<<<<< HEAD
-  min-width: 56px;
-=======
   min-width: 56px;                 /* Ensures consistent column width */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .oaq-vote-btn {
@@ -418,28 +340,19 @@
   height: 16px;
 }
 
-<<<<<<< HEAD
-=======
 /* Upvote button turns green on hover */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-vote-btn--up:hover {
   background: var(--success-bg);
   color: var(--success);
 }
 
-<<<<<<< HEAD
-=======
 /* Downvote button turns red on hover */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-vote-btn--down:hover {
   background: var(--danger-bg);
   color: var(--danger);
 }
 
-<<<<<<< HEAD
-=======
 /* Smaller vote button variant (for answers) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-vote-btn--sm {
   width: 24px;
   height: 24px;
@@ -450,10 +363,7 @@
   height: 14px;
 }
 
-<<<<<<< HEAD
-=======
 /* Stacked upvote / downvote counts */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-vote-split {
   display: flex;
   flex-direction: column;
@@ -465,11 +375,7 @@
 }
 
 .oaq-vote-split--sm {
-<<<<<<< HEAD
-  font-size: 0.68rem;
-=======
   font-size: 0.68rem;             /* Smaller text for answer votes */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .oaq-vote-up {
@@ -480,21 +386,12 @@
   color: var(--danger);
 }
 
-<<<<<<< HEAD
-/* ---- Card body ---- */
-
-.oaq-card__body {
-  flex: 1;
-  padding: 14px 16px;
-  min-width: 0;
-=======
 /* ----- Card body ----- */
 
 .oaq-card__body {
   flex: 1;                         /* Fills remaining space after vote column */
   padding: 14px 16px;
   min-width: 0;                    /* Allows text truncation / wrapping in flex */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }
 
 .oaq-card__top {
@@ -512,10 +409,7 @@
   line-height: 1.4;
 }
 
-<<<<<<< HEAD
-=======
 /* Status badge (open / approved / promoted / rejected) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-status {
   flex-shrink: 0;
   font-size: 0.7rem;
@@ -532,10 +426,7 @@
 .oaq-status--promoted { background: var(--accent-light); color: var(--accent); }
 .oaq-status--rejected { background: var(--danger-bg); color: var(--danger); }
 
-<<<<<<< HEAD
-=======
 /* Meta row: author, date, views, answers, report */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-card__meta {
   display: flex;
   gap: 14px;
@@ -544,10 +435,7 @@
   margin-bottom: 10px;
 }
 
-<<<<<<< HEAD
-=======
 /* Expand / collapse toggle button */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-card__expand {
   display: inline-flex;
   align-items: center;
@@ -562,10 +450,7 @@
   cursor: pointer;
 }
 
-<<<<<<< HEAD
-=======
 /* Chevron icon: rotates 90° when answers are visible */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-chevron {
   width: 14px;
   height: 14px;
@@ -576,9 +461,6 @@
   transform: rotate(90deg);
 }
 
-<<<<<<< HEAD
-/* ---- Answers ---- */
-=======
 /* Description text on cards */
 .oaq-card__desc {
   font-size: 0.85rem;
@@ -607,7 +489,6 @@
 /* ============================================================
    ANSWERS SECTION (inside expanded card)
    ============================================================ */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 
 .oaq-answers {
   margin-top: 12px;
@@ -621,10 +502,7 @@
   margin-bottom: 10px;
 }
 
-<<<<<<< HEAD
-=======
 /* Individual answer row */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-answer {
   display: flex;
   gap: 10px;
@@ -634,19 +512,13 @@
   margin-bottom: 8px;
 }
 
-<<<<<<< HEAD
-=======
 /* Accepted answer: green background and border */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-answer--accepted {
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
 }
 
-<<<<<<< HEAD
-=======
 /* Answer vote column (smaller) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-answer__vote {
   display: flex;
   flex-direction: column;
@@ -678,10 +550,7 @@
   font-weight: 600;
 }
 
-<<<<<<< HEAD
-=======
 /* Answer submission form */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-answer-form {
   display: flex;
   flex-direction: column;
@@ -694,68 +563,6 @@
   margin-top: 0;
 }
 
-<<<<<<< HEAD
-/* ---- Ghost button ---- */
-.oaq-btn--ghost {
-  background: none;
-  color: var(--text-muted);
-  margin-top: 0;
-}
-
-.oaq-btn--ghost:hover {
-  color: var(--text-secondary);
-}
-
-/* ---- Select / Category ---- */
-.oaq-select {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  outline: none;
-  color: var(--text-secondary);
-  background: var(--bg-card);
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.oaq-select:focus {
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.oaq-category-row {
-  margin-top: 8px;
-}
-
-/* ---- Description & Category on cards ---- */
-.oaq-card__desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 4px 0 6px;
-}
-
-.oaq-card__cat {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--accent);
-  background: var(--accent-light);
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-}
-
-.oaq-card__score {
-  color: #2563eb;
-  font-weight: 600;
-}
-
-/* ---- Related questions ---- */
-=======
 /* ============================================================
    RELATED QUESTIONS SECTION (REMOVED)
    ============================================================ */
@@ -768,7 +575,6 @@
  * the component, but the CSS classes below are kept for reference.
  */
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-related {
   margin-top: 12px;
   padding: 10px 14px;
@@ -799,15 +605,11 @@
   border-bottom: 1px solid var(--border);
 }
 
-<<<<<<< HEAD
-/* ── Report ── */
-=======
 /* ============================================================
    REPORT SYSTEM
    ============================================================ */
 
 /* Small inline report button (in meta rows) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-report-btn {
   background: none;
   border: none;
@@ -833,10 +635,7 @@
   padding: 1px 4px;
 }
 
-<<<<<<< HEAD
-=======
 /* Full-screen dark overlay behind the report modal */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-report-overlay {
   position: fixed;
   inset: 0;
@@ -848,21 +647,14 @@
   padding: 20px;
 }
 
-<<<<<<< HEAD
-=======
 /* Modal card: white card on dark overlay */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-report-modal {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
   width: 100%;
-<<<<<<< HEAD
-  max-width: 420px;
-=======
   max-width: 420px;                /* Limits modal width on large screens */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   box-shadow: var(--shadow-lg);
 }
 
@@ -880,18 +672,11 @@
   margin-top: 12px;
 }
 
-<<<<<<< HEAD
-[data-theme="dark"] .oaq-report-modal {
-  border-color: #374151;
-}
-
-=======
 /* ============================================================
    TOAST NOTIFICATION
    ============================================================ */
 
 /* Fixed bottom-center toast; auto-dismisses on click */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .oaq-toast {
   position: fixed;
   bottom: 24px;
@@ -915,9 +700,6 @@
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-<<<<<<< HEAD
-/* ── Dark mode overrides ── */
-=======
 /* ============================================================
    DARK MODE OVERRIDES
    ============================================================ */
@@ -932,23 +714,16 @@
  */
 
 /* Promoted card background in dark mode */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .oaq-card--promoted {
   background: #1e1b4b;
 }
 
-<<<<<<< HEAD
-=======
 /* Score text color in dark mode uses the accent variable instead of hardcoded blue */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .oaq-card__score {
   color: var(--accent);
 }
 
-<<<<<<< HEAD
-=======
 /* Related questions section (kept for reference) dark background */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .oaq-related {
   background: #1e1b4b;
   border-color: #312e81;
@@ -958,28 +733,17 @@
   color: var(--accent);
 }
 
-<<<<<<< HEAD
-=======
 /* Secondary button hover in dark mode */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .oaq-btn--secondary:hover:not(:disabled) {
   background: #312e81;
 }
 
-<<<<<<< HEAD
-=======
 /* Accepted answer card in dark mode: dark green instead of light green */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 [data-theme="dark"] .oaq-answer--accepted {
   background: #052e16;
   border-color: #166534;
 }
 
-<<<<<<< HEAD
-[data-theme="dark"] .oaq-answer {
-  background: #1e293b;
-}
-=======
 /* Answer card background in dark mode */
 [data-theme="dark"] .oaq-answer {
   background: #1e293b;
@@ -989,4 +753,3 @@
 [data-theme="dark"] .oaq-report-modal {
   border-color: #374151;
 }
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2

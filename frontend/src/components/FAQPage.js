@@ -1,39 +1,35 @@
-<<<<<<< HEAD
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-=======
 /*
  * FAQPage — Main FAQ page component.
  *
  * Data flow:
- *   1) On mount, fetches all FAQ categories+questions from /api/faqs.
- *   2) Search filters the data client-side via a multi-word substring match
- *      against question text (q) and answer text (a).
- *   3) Results are displayed either as a card grid (default) or a flat list
- *      (when a search query is active).
+ * 1) On mount, fetches all FAQ categories+questions from /api/faqs.
+ * 2) Search filters the data client-side via a multi-word substring match
+ * against question text (q) and answer text (a).
+ * 3) Results are displayed either as a card grid (default) or a flat list
+ * (when a search query is active).
  *
  * Accordion (expand/collapse):
- *   A flat object (openItems) tracks which question is open per category
- *   by mapping category index → question index. Only one question per
- *   category can be open at a time (accordion behaviour).
+ * A flat object (openItems) tracks which question is open per category
+ * by mapping category index → question index. Only one question per
+ * category can be open at a time (accordion behaviour).
  *
  * Voice search:
- *   Uses the Web Speech API (SpeechRecognition). When the mic button is
- *   clicked, listening starts; on result, the transcript is set as the
- *   search query.
+ * Uses the Web Speech API (SpeechRecognition). When the mic button is
+ * clicked, listening starts; on result, the transcript is set as the
+ * search query.
  *
  * Autocomplete dropdown:
- *   Rendered by the AutocorrectInput component. It fetches suggestions
- *   from /api/search/suggest with a 250 ms debounce and shows a
- *   positioned dropdown.
+ * Rendered by the AutocorrectInput component. It fetches suggestions
+ * from /api/search/suggest with a 250 ms debounce and shows a
+ * positioned dropdown.
  *
  * Clear / Empty states:
- *   A clear (×) button appears when searchQuery is non-empty. If
- *   displayedData is empty and a search is active, an "empty" state is
- *   shown with a button to clear the search.
+ * A clear (×) button appears when searchQuery is non-empty. If
+ * displayedData is empty and a search is active, an "empty" state is
+ * shown with a button to clear the search.
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 import { useNavigate } from 'react-router-dom';
 import FAQItem from './FAQItem';
 import AutocorrectInput from './AutocorrectInput';
@@ -41,33 +37,19 @@ import './FAQPage.css';
 
 function FAQPage() {
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [faqData, setFaqData] = useState([]);
-  const [searchResults, setSearchResults] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [listening, setListening] = useState(false);
-  const [openItems, setOpenItems] = useState({});
-  const searchTimer = useRef(null);
-=======
   const [faqData, setFaqData] = useState([]);           // Full data from the API
   const [searchQuery, setSearchQuery] = useState('');    // Current search text
-  const [loading, setLoading] = useState(true);           // Loading spinner state
+  const [loading, setLoading] = useState(true);          // Loading spinner state
   const [listening, setListening] = useState(false);      // Voice recognition active?
   const [openItems, setOpenItems] = useState({});         // Accordion: { [catIndex]: qIndex | null }
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const gridRef = useRef(null);
   const recognitionRef = useRef(null);
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const micSupported = !!SpeechRecognition;
 
-<<<<<<< HEAD
-  /* ── Voice search ── */
-=======
   // ── Voice search ──
   // Toggles the Web Speech API recogniser. On result, sets the transcript
   // as the search query and stops listening.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const toggleListening = useCallback(() => {
     if (listening) {
       recognitionRef.current?.stop();
@@ -91,19 +73,13 @@ function FAQPage() {
     setListening(true);
   }, [listening, SpeechRecognition]);
 
-<<<<<<< HEAD
-=======
   // Cleanup: abort any active recognition session when the component unmounts.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   useEffect(() => {
     return () => recognitionRef.current?.abort();
   }, []);
 
-<<<<<<< HEAD
-=======
   // ── Data fetching ──
   // On mount, fetches all FAQ categories and questions from the backend API.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   useEffect(() => {
     fetch('/api/faqs')
       .then(res => res.json())
@@ -114,30 +90,6 @@ function FAQPage() {
       .catch(() => setLoading(false));
   }, []);
 
-<<<<<<< HEAD
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-
-    const q = searchQuery.trim();
-    if (!q) {
-      setSearchResults(null);
-      return;
-    }
-
-    searchTimer.current = setTimeout(() => {
-      fetch(`/api/faqs/search?q=${encodeURIComponent(q)}`)
-        .then(res => res.json())
-        .then(setSearchResults)
-        .catch(() => setSearchResults([]));
-    }, 300);
-
-    return () => clearTimeout(searchTimer.current);
-  }, [searchQuery]);
-
-  const displayedData = searchResults ?? faqData;
-  const isSearching = searchResults !== null;
-
-=======
   // ── Client-side search filtering ──
   // If the trimmed query is empty or shorter than 2 characters, return all
   // data unchanged. Otherwise split the query into words and keep only
@@ -167,7 +119,6 @@ function FAQPage() {
   // Sets the open item for a given category. If the same question index is
   // clicked again it closes (sets null), implementing a single-open-per-
   // category accordion.
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   const toggleItem = useCallback((catIndex, qIndex) => {
     setOpenItems(prev => ({
       ...prev,
@@ -175,24 +126,6 @@ function FAQPage() {
     }));
   }, []);
 
-<<<<<<< HEAD
-  const handleView = useCallback((catIdx, qIdx) => {
-    if (searchResults !== null) {
-      setSearchResults(prev => prev ? prev.map((cat, i) =>
-        i === catIdx ? { ...cat, questions: cat.questions.map((q, j) =>
-          j === qIdx ? { ...q, views: (q.views || 0) + 1 } : q
-        ) } : cat
-      ) : prev);
-    } else {
-      setFaqData(prev => prev.map((cat, i) =>
-        i === catIdx ? { ...cat, questions: cat.questions.map((q, j) =>
-          j === qIdx ? { ...q, views: (q.views || 0) + 1 } : q
-        ) } : cat
-      ));
-    }
-  }, [searchResults]);
-
-=======
   // ── View counter ──
   // Optimistically increments the view count locally so the UI updates
   // immediately (the actual POST to the API is handled inside FAQItem).
@@ -205,7 +138,6 @@ function FAQPage() {
   }, []);
 
   // ── Loading skeleton ──
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   if (loading) {
     return (
       <div className="faq-page">
@@ -230,17 +162,11 @@ function FAQPage() {
 
   return (
     <div className="faq-page">
-<<<<<<< HEAD
-      <div className="faq-gradient" />
-
-      <div className="faq-container">
-=======
       {/* Decorative gradient background layer */}
       <div className="faq-gradient" />
 
       <div className="faq-container">
         {/* ── Header section ── */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         <div className="faq-header">
           <span className="faq-badge">Help Center</span>
           <h1 className="faq-title">
@@ -252,10 +178,6 @@ function FAQPage() {
           </p>
         </div>
 
-<<<<<<< HEAD
-        <div className="faq-search-wrapper">
-          <div className="faq-search">
-=======
         {/* ── Search bar with autocomplete, voice, and clear ── */}
         <div className="faq-search-wrapper">
             {/* "New question" button navigates to the community page */}
@@ -267,25 +189,18 @@ function FAQPage() {
             </button>
           <div className="faq-search">
             {/* Search icon */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
             <svg className="faq-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-<<<<<<< HEAD
-=======
             {/* AutocorrectInput renders the actual <input> + suggestion dropdown */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
             <AutocorrectInput
               className="faq-search-input"
               placeholder="Search questions or keywords..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
-<<<<<<< HEAD
-=======
             {/* Voice search button — only rendered if the browser supports it */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
             {micSupported && (
               <button
                 className={`faq-search-mic ${listening ? 'faq-search-mic--active' : ''}`}
@@ -300,10 +215,7 @@ function FAQPage() {
                 </svg>
               </button>
             )}
-<<<<<<< HEAD
-=======
             {/* Clear button — visible only when there is a search query */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
             {searchQuery && (
               <button className="faq-search-clear" onClick={() => setSearchQuery('')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -312,23 +224,11 @@ function FAQPage() {
               </button>
               )}
             </div>
-<<<<<<< HEAD
-            <button className="faq-ask-btn" onClick={() => navigate('/community')}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              New question
-            </button>
-          </div>
-
-        {displayedData.length === 0 ? (
-=======
           </div>
 
         {/* ── Content area ── */}
         {displayedData.length === 0 ? (
           /* Empty state — shown when search yields no results */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
           <div className="faq-empty">
             <div className="faq-empty-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -343,10 +243,7 @@ function FAQPage() {
             </button>
           </div>
         ) : isSearching ? (
-<<<<<<< HEAD
-=======
           /* ── Search-results view (flat list, no category grouping in layout) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
           <>
             <div className="faq-results-count">
               <span className="faq-results-count__dot" />
@@ -378,10 +275,7 @@ function FAQPage() {
             </div>
           </>
         ) : (
-<<<<<<< HEAD
-=======
           /* ── Default grid view — category cards arranged in a responsive grid ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
           <div className="faq-grid" ref={gridRef}>
             {displayedData.map((category, catIdx) => (
               <div key={category._id || catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.06}s` }}>
@@ -411,10 +305,7 @@ function FAQPage() {
           </div>
         )}
 
-<<<<<<< HEAD
-=======
         {/* ── Footer ── */}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         <div className="faq-footer">
           <p>Still have questions? <a href="#contact">Get in touch →</a></p>
         </div>
