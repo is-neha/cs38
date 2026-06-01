@@ -17,8 +17,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const groqApiKey = process.env.GROQ_API_KEY;
 
-<<<<<<< HEAD
-=======
 /* ── Text indexes & search cache ── */
 const searchCache = new Map();
 const SEARCH_CACHE_TTL = 60000;
@@ -33,7 +31,6 @@ async function ensureIndexes() {
   }
 }
 
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 /* ── FAQ cache (5 min TTL) ── */
 let faqCache = null;
 let faqCacheTime = 0;
@@ -42,14 +39,10 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/faq-app';
 
 function connectDB(retrying) {
   mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000 })
-<<<<<<< HEAD
-    .then(() => console.log('Connected to MongoDB' + (retrying ? ' (retry)' : '')))
-=======
     .then(() => {
       console.log('Connected to MongoDB' + (retrying ? ' (retry)' : ''));
       if (!retrying) ensureIndexes();
     })
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
     .catch(err => {
       console.error('MongoDB connection error:', err.message);
       if (!retrying) {
@@ -89,37 +82,6 @@ app.get('/api/faqs', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-/* ── Smart search with fuzzy matching ── */
-app.get('/api/faqs/search', async (req, res) => {
-  try {
-    const query = req.query.q?.toLowerCase() || '';
-    const faqs = await FAQ.find().lean();
-
-    if (!query || query.length < 3) return res.json(faqs);
-
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const fuzzy = query.length >= 3 ? escaped.split('').join('.*') : escaped;
-    const regex = new RegExp(fuzzy, 'i');
-    const wordMatch = text => text.split(/\s+/).some(w => regex.test(w));
-
-    const results = faqs.map(cat => ({
-      ...cat,
-      questions: cat.questions
-        .filter(item => wordMatch(item.q) || wordMatch(item.a))
-        .map(item => ({
-          ...item,
-          _relevance:
-            (item.q.toLowerCase().includes(query) ? 3 : 0) +
-            (item.a.toLowerCase().includes(query) ? 1 : 0),
-        }))
-        .sort((a, b) => b._relevance - a._relevance),
-    })).filter(cat => cat.questions.length > 0);
-
-    res.json(results);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-=======
 /* ── Full-text search (like large-scale sites) ── */
 app.get('/api/faqs/search', async (req, res) => {
   try {
@@ -212,7 +174,6 @@ app.get('/api/faqs/search', async (req, res) => {
     } catch {
       res.status(500).json({ error: err.message });
     }
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   }
 });
 
@@ -229,22 +190,6 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-/* ── Unified search (FAQ + OAQ) ── */
-app.get('/api/search/all', async (req, res) => {
-  try {
-    const query = req.query.q?.toLowerCase() || '';
-    if (!query || query.length < 3) return res.json({ faq: [], oaq: [] });
-
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const fuzzy = query.length >= 3 ? escaped.split('').join('.*') : escaped;
-    const regex = new RegExp(fuzzy, 'i');
-    const wordMatch = text => text.split(/\s+/).some(w => regex.test(w));
-
-    const [faqResults, oaqResults] = await Promise.all([
-      FAQ.find({ $or: [{ 'questions.q': { $regex: regex } }, { 'questions.a': { $regex: regex } }] }).lean(),
-      OAQ.find({ question: { $regex: regex }, status: { $ne: 'rejected' } })
-=======
 /* ── Unified search (FAQ + OAQ) with full-text ── */
 app.get('/api/search/all', async (req, res) => {
   try {
@@ -281,29 +226,10 @@ app.get('/api/search/all', async (req, res) => {
       )
         .sort({ score: -1 })
         .limit(10)
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
         .populate('submittedBy', 'name')
         .lean({ virtuals: true }),
     ]);
 
-<<<<<<< HEAD
-    const faq = faqResults.map(cat => ({
-      ...cat,
-      questions: cat.questions
-        .filter(item => wordMatch(item.q) || wordMatch(item.a))
-        .map(item => ({
-          ...item,
-          _relevance:
-            (item.q.toLowerCase().includes(query) ? 3 : 0) +
-            (item.a.toLowerCase().includes(query) ? 1 : 0),
-        }))
-        .sort((a, b) => b._relevance - a._relevance),
-    })).filter(cat => cat.questions.length > 0);
-
-    res.json({ faq, oaq: oaqResults });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-=======
     const result = { faq: faqPipe, oaq: oaqResults };
     searchCache.set(cacheKey, { data: result, ts: Date.now() });
     res.json(result);
@@ -324,7 +250,6 @@ app.get('/api/search/all', async (req, res) => {
     } catch {
       res.status(500).json({ error: err.message });
     }
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   }
 });
 
@@ -335,7 +260,6 @@ app.get('/api/search/suggest', async (req, res) => {
     if (!query || query.length < 2) return res.json([]);
 
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-<<<<<<< HEAD
     const allQas = await FAQ.aggregate([
       { $unwind: '$questions' },
       { $project: { _id: 0, cat: '$category', q: '$questions.q', a: '$questions.a' } },
@@ -363,41 +287,6 @@ app.get('/api/search/suggest', async (req, res) => {
     });
 
     res.json(unique.slice(0, 8));
-=======
-
-    /* Prefix match for speed: finds questions starting with any word in the query */
-    const words = escaped.split(/\s+/).filter(Boolean);
-    const prefixRegex = words.map(w => new RegExp('\\b' + w, 'i'));
-
-    const allQas = await FAQ.aggregate([
-      { $unwind: '$questions' },
-      {
-        $match: {
-          $or: prefixRegex.map(r => ({ 'questions.q': { $regex: r } })),
-        },
-      },
-      { $project: { _id: 0, cat: '$category', q: '$questions.q' } },
-      { $limit: 30 },
-    ]);
-
-    const oaqs = await OAQ.find(
-      { $or: prefixRegex.map(r => ({ question: { $regex: r } })), status: { $ne: 'rejected' } },
-    ).select('question').limit(20).lean();
-
-    const seen = new Set();
-    const suggestions = [];
-
-    for (const item of allQas) {
-      const key = item.q.toLowerCase();
-      if (!seen.has(key)) { seen.add(key); suggestions.push({ text: item.q, type: 'FAQ', cat: item.cat }); }
-    }
-    for (const item of oaqs) {
-      const key = item.question.toLowerCase();
-      if (!seen.has(key)) { seen.add(key); suggestions.push({ text: item.question, type: 'OAQ' }); }
-    }
-
-    res.json(suggestions.slice(0, 8));
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

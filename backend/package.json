@@ -6,12 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-<<<<<<< HEAD
     "seed": "node scripts/seed.js",
     "create-admin": "node scripts/create-admin.js"
-=======
-    "seed": "node scripts/seed.js"
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

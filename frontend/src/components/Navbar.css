@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /* ==========================================
    1. Base Layout & Desktop Configuration (> 1080px)
    ========================================== */
@@ -23,57 +22,35 @@
   position: relative; /* Necessary constraint for absolute dropdown positioning */
 }
 
-=======
-/*
- * Navbar.css — Styles for the responsive top navigation bar
- *
- * Layout overview:
- *   - .navbar is a sticky full‑width bar with a flex inner container (.navbar-inner).
- *   - Brand (left), links (centre), utility items (right) are spaced with
- *     `justify-content: space-between`.
- *   - A hamburger button is hidden on desktop (>768 px) and displayed on mobile.
- *   - On mobile the link list becomes an absolute‑positioned dropdown below the bar.
- *
- * Dark mode:
- *   - All colours reference CSS custom properties (var(--*)) that are toggled
- *     at the :root / body level by ThemeToggle — no separate media query needed.
- *   - Properties used: --navbar-bg, --navbar-border, --text-primary, --text-muted,
- *     --bg-muted, --accent, --accent-gradient, --danger, --shadow-lg.
- */
-
-/* ── Navbar outer container ── */
-.navbar {
-  background: var(--navbar-bg);        /* Switches with theme – light or dark background */
-  border-bottom: 1px solid var(--navbar-border); /* Subtle bottom border */
-  position: sticky;                     /* Stays at the top when scrolling */
-  top: 0;
-  z-index: 200;                         /* Above most content but below modals / toasts */
-  transition: background 0.3s, border-color 0.3s; /* Smooth theme switch */
-}
-
-/* ── Inner centred container ── */
-.navbar-inner {
-  max-width: 1200px;                   /* Matches page content width */
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;       /* Brand left | links centre | right items */
-  padding: 0 20px;
-  height: 56px;                         /* Fixed height keeps the bar consistent */
-  position: relative;                   /* Anchor for absolutely positioned children */
-}
-
-/* ── Brand / logo link ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .navbar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 1.05rem;
   font-weight: 700;
-<<<<<<< HEAD
   color: var(--text-primary);
   text-decoration: none;
+}
+
+.navbar-brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navbar-brand-home {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.navbar-brand-home:hover {
+  color: var(--text-primary);
+  background: var(--bg-muted);
 }
 
 .navbar-logo {
@@ -83,36 +60,16 @@
 }
 
 /* Inline Desktop Links Links Setup */
-=======
-  color: var(--text-primary);           /* Primary text colour (theme‑aware) */
-  text-decoration: none;
-}
-
-/* ── Inline SVG icon inside the brand ── */
-.navbar-logo {
-  width: 24px;
-  height: 24px;
-  color: var(--accent);                 /* Accent colour (e.g. blue / purple) */
-}
-
-/* ── Desktop navigation link row ── */
-/* On mobile this becomes a hidden dropdown; see the @media block at the bottom. */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .navbar-links {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-<<<<<<< HEAD
-=======
-/* ── Individual text links ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .navbar-link {
   padding: 8px 14px;
   font-size: 0.88rem;
   font-weight: 500;
-<<<<<<< HEAD
   color: var(--text-muted);
   text-decoration: none;
   border-radius: 8px;
@@ -124,20 +81,6 @@
   color: var(--text-primary);
 }
 
-=======
-  color: var(--text-muted);             /* Slightly softer colour for inactive links */
-  text-decoration: none;
-  border-radius: 8px;
-  transition: background 0.2s, color 0.2s; /* Smooth hover effect */
-}
-
-.navbar-link:hover {
-  background: var(--bg-muted);          /* Subtle background on hover */
-  color: var(--text-primary);           /* Full‑intensity text on hover */
-}
-
-/* ── Button‑style nav items (e.g. Sign Out, Sign Up) ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .navbar-btn {
   padding: 8px 16px;
   border: none;
@@ -154,44 +97,26 @@
 
 .navbar-btn:hover {
   background: var(--bg-muted);
-<<<<<<< HEAD
   color: var(--danger);
 }
 
 .navbar-btn--primary {
   background: var(--accent-gradient);
-=======
-  color: var(--danger);                 /* Sign‑out button turns red on hover */
-}
-
-/* ── Primary call‑to‑action button (e.g. Sign Up) ── */
-.navbar-btn--primary {
-  background: var(--accent-gradient);   /* Gradient accent background */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   color: white;
   font-weight: 600;
   padding: 8px 18px;
 }
 
 .navbar-btn--primary:hover {
-<<<<<<< HEAD
   color: white;
 }
 
-=======
-  background: linear-gradient(135deg, #4338ca, #4f46e5);
-  color: white;
-}
-
-/* ── Right‑side utility container ── */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-<<<<<<< HEAD
 .navbar-role {
   display: inline-block;
   font-size: 0.7rem;
@@ -232,19 +157,10 @@
   position: absolute;
   right: 8px;
   top: 100%;
-=======
-/* ── Theme‑toggle lamp positioned below the navbar ── */
-/* This places the dark‑mode toggle (a small icon) just under the right edge. */
-.navbar-lamp {
-  position: absolute;
-  right: 8px;
-  top: 100%;                            /* Just below the navbar bottom */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
-<<<<<<< HEAD
   transform-origin: top center;
 }
 
@@ -272,69 +188,10 @@
 @media screen and (max-width: 1080px) {
   
   /* Expose the hamburger container icon block */
-=======
-  transform-origin: top center;         /* For any pop‑in animation from the top */
-}
-
-/* ═══════════════════════════════════════════════════════════
-   Hamburger menu button (hidden on desktop, shown on mobile)
-   ═══════════════════════════════════════════════════════════ */
-
-.hamburger {
-  display: none;                        /* Hidden on desktop by default */
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-
-.hamburger:hover {
-  background: var(--bg-muted);
-}
-
-/* ── Individual bars of the hamburger icon ── */
-.bar {
-  width: 22px;
-  height: 2.5px;
-  background: var(--text-primary);
-  border-radius: 2px;
-  transition: all 0.3s;                 /* Smooth morph into an X when .open is added */
-}
-
-/* ── Animate bars into an X when the hamburger is open ── */
-/* First bar: shift down and rotate 45°  (top-left → centre of X) */
-.hamburger.open .bar:nth-child(1) {
-  transform: translateY(7.5px) rotate(45deg);
-}
-
-/* Second bar: fade out (middle line disappears) */
-.hamburger.open .bar:nth-child(2) {
-  opacity: 0;
-}
-
-/* Third bar: shift up and rotate -45° (bottom-left → centre of X) */
-.hamburger.open .bar:nth-child(3) {
-  transform: translateY(-7.5px) rotate(-45deg);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   Mobile styles — applied when viewport is 768 px or narrower
-   ═══════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-  /* Show the hamburger button (hidden on desktop) */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   .hamburger {
     display: flex;
   }
 
-<<<<<<< HEAD
   /* Morphing cross bar (X) animations when open toggle applies */
   .bar.open:nth-child(1) {
     transform: translateY(7.5px) rotate(45deg);
@@ -367,30 +224,10 @@
   }
 
   /* Reveals the vertical layout stack container cleanly when state is active */
-=======
-  /* Convert the link row into an absolute‑positioned dropdown panel
-     that appears below the navbar when .active is added. */
-  .navbar-links {
-    position: absolute;
-    top: 100%;                          /* Directly below the navbar */
-    left: 0;
-    right: 0;
-    background: var(--navbar-bg);       /* Match navbar background (theme‑aware) */
-    border-bottom: 1px solid var(--navbar-border);
-    flex-direction: column;             /* Stack links vertically */
-    padding: 12px 20px;
-    gap: 2px;
-    display: none;                      /* Hidden by default (no .active class) */
-    box-shadow: var(--shadow-lg);       /* Drop shadow so it floats above content */
-  }
-
-  /* When the hamburger is open, reveal the dropdown panel */
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
   .navbar-links.active {
     display: flex;
   }
 
-<<<<<<< HEAD
   /* Readability fixes for dropdown links inside vertical context */
   .navbar-link, .navbar-btn {
     width: 100%;
@@ -404,30 +241,3 @@
     margin-top: 0.5rem;
   }
 }
-=======
-  /* Make links and buttons full‑width for easy tapping on touch screens */
-  .navbar-link,
-  .navbar-btn {
-    width: 100%;
-    text-align: left;
-    padding: 12px 14px;
-    font-size: 0.95rem;                 /* Slightly larger for touch targets */
-  }
-
-  /* Centre the primary CTA button (e.g. Sign Up) and add top spacing */
-  .navbar-btn--primary {
-    text-align: center;
-    margin-top: 4px;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   Extra‑small screens — hide the brand text, keep only the icon
-   ═══════════════════════════════════════════════════════════ */
-
-@media (max-width: 480px) {
-  .navbar-brand span {
-    display: none;                      /* Hide "FAQ Portal" text; icon remains */
-  }
-}
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2

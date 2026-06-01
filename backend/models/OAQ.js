@@ -6,16 +6,22 @@ const answerSchema = new mongoose.Schema({
   votedUpBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   votedDownBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   accepted: { type: Boolean, default: false },
-<<<<<<< HEAD
   answeredByAdmin: { type: Boolean, default: false },
   verifiedByAdmin: { type: Boolean, default: false },
-=======
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
 }, { timestamps: true });
 
-answerSchema.virtual('upvotes').get(function() { return (this.votedUpBy || []).length; });
-answerSchema.virtual('downvotes').get(function() { return (this.votedDownBy || []).length; });
-answerSchema.virtual('netVotes').get(function() { return (this.votedUpBy || []).length - (this.votedDownBy || []).length; });
+answerSchema.virtual('upvotes').get(function() {
+  return (this.votedUpBy || []).length;
+});
+
+answerSchema.virtual('downvotes').get(function() {
+  return (this.votedDownBy || []).length;
+});
+
+answerSchema.virtual('netVotes').get(function() {
+  return (this.votedUpBy || []).length - (this.votedDownBy || []).length;
+});
+
 answerSchema.set('toJSON', { virtuals: true });
 
 const oaqSchema = new mongoose.Schema({
@@ -27,13 +33,26 @@ const oaqSchema = new mongoose.Schema({
   votedUpBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   votedDownBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   answers: [answerSchema],
-  status: { type: String, enum: ['open', 'approved', 'promoted', 'rejected'], default: 'open' },
+  status: {
+    type: String,
+    enum: ['open', 'approved', 'promoted', 'rejected'],
+    default: 'open'
+  },
   promotedCount: { type: Number, default: 0 },
 }, { timestamps: true });
 
-oaqSchema.virtual('upvotes').get(function() { return (this.votedUpBy || []).length; });
-oaqSchema.virtual('downvotes').get(function() { return (this.votedDownBy || []).length; });
-oaqSchema.virtual('netVotes').get(function() { return (this.votedUpBy || []).length - (this.votedDownBy || []).length; });
+oaqSchema.virtual('upvotes').get(function() {
+  return (this.votedUpBy || []).length;
+});
+
+oaqSchema.virtual('downvotes').get(function() {
+  return (this.votedDownBy || []).length;
+});
+
+oaqSchema.virtual('netVotes').get(function() {
+  return (this.votedUpBy || []).length - (this.votedDownBy || []).length;
+});
+
 oaqSchema.set('toJSON', { virtuals: true });
 
 module.exports = mongoose.model('OAQ', oaqSchema);
