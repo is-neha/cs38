@@ -39,28 +39,6 @@ async function scoreImportance(questionText) {
   }
 }
 
-/* ── Batch score unscored questions at startup (runs once) ── */
-let batchScored = false;
-async function batchScoreUnscored() {
-  if (batchScored) return;
-  batchScored = true;
-  try {
-    const allOaqs = await OAQ.find({ status: 'open' }).lean();
-    const unscored = allOaqs.filter(o => !o.importanceScore || o.importanceScore === 0);
-    if (unscored.length > 0) {
-      console.log(`[batchScore] Found ${unscored.length} unscored questions`);
-      await Promise.all(unscored.map(async o => {
-        const score = await scoreImportance(o.question);
-        await OAQ.findByIdAndUpdate(o._id, { importanceScore: score });
-      }));
-      console.log('Existing questions scored.');
-    }
-  } catch (err) {
-    console.error('[batchScore] Error:', err.message);
-  }
-}
-batchScoreUnscored();
-
 /* ── List OAQs ── */
 router.get('/', async (req, res) => {
   try {

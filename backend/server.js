@@ -619,10 +619,13 @@ app.get('/api/leaderboard', async (req, res) => {
 async function batchScoreUnscored() {
   if (!groqApiKey) { console.log('[batchScore] No GROQ_API_KEY, skipping'); return; }
   try {
-    const unscored = await OAQ.find({ $or: [{ importanceScore: { $exists: false } }, { importanceScore: 0 }] });
-    console.log(`[batchScore] Found ${unscored.length} unscored questions`);
+    const cutoff = new Date(Date.now() - 60000);
+    const unscored = await OAQ.find({
+      createdAt: { $lte: cutoff },
+      $or: [{ importanceScore: { $exists: false } }, { importanceScore: 0 }],
+    });
     if (unscored.length === 0) return;
-    console.log(`Scoring ${unscored.length} existing question(s)…`);
+    console.log(`[batchScore] Scoring ${unscored.length} existing question(s)…`);
     const GroqLib = require('groq-sdk');
     for (const oaq of unscored) {
       try {
