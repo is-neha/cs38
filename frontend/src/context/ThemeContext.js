@@ -5,7 +5,7 @@ const ThemeContext = createContext(null);
 
 function ThemeProvider({ children }) {
   const { user, authFetch } = useAuth();
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
@@ -21,6 +21,7 @@ function ThemeProvider({ children }) {
     setDark(prev => {
       const next = !prev;
       const theme = next ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
       authFetch('/api/auth/theme', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

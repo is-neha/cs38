@@ -16,36 +16,6 @@ const seedData = [
     ],
   },
   {
-    category: 'Timing & Dates',
-    icon: '📅',
-    questions: [
-      { q: 'When can I start?', a: 'Any time in 2026, but your internship must finish by 31 December 2026. Starting as early as possible is strongly recommended to benefit from cohort networking, TA support, and structured training.' },
-      { q: 'How long is the internship?', a: 'Two months from your chosen start date, with an optional one-month grace period. End must land on or before 31 December 2026.' },
-      { q: 'Can I start later if I have exams now?', a: 'Yes — wait until your exams are done, then opt in and start. Do not attempt to juggle this internship with ongoing exams.' },
-      { q: 'Can I start with the cohort and take relaxation during my exams?', a: 'No. VINS is a full-attention internship (6–10 hours/day). Splitting attention with exams damages both. Defer your start to after your exams.' },
-      { q: 'Can I take leave for an exam scheduled in June?', a: 'No — the 55-day continuous window is non-negotiable. Split attention genuinely damages both exam preparation and internship work.' },
-      { q: 'Are orientation session recordings shared?', a: 'Recordings of the sessions will not be provided. However, we may provide access to an abridged version of a talk or session if considered important.' },
-    ],
-  },
-  {
-    category: 'NOC (No Objection Certificate)',
-    icon: '📄',
-    questions: [
-      { q: 'What dates do I put on the NOC?', a: 'Your chosen start date to start + 2 months (with up to 1 month grace), ensuring end date is on or before 31 December 2026.' },
-      { q: 'Who can sign the NOC?', a: 'Any authorised signatory at your college: HOD, Acting HOD, Principal, Dean, Director, or Training & Placement Officer. For dual-degree students, either institution can sign.' },
-      { q: 'When do I submit the NOC? Is the deadline hard?', a: 'There is no hard deadline, but submit it as early as possible to join the summer cohort and get the full experience with TA support.' },
-      { q: 'What format should I use for the NOC?', a: 'We provide a printable NOC format on your dashboard. You do not need to draft anything yourself or use college letterhead.' },
-      { q: 'Can my college use their own NOC format?', a: 'Yes, as long as it has: the signing authority\'s handwritten signature, their official email, your full name, and your signature.' },
-      { q: 'Does the NOC need to be signed by hand?', a: 'Yes — handwritten signature, institutional rubber stamp, and signatory\'s email are required. Digital signatures are not accepted on the PDF path.' },
-      { q: 'Can my HOD email the NOC instead of signing a printout?', a: 'Yes — use the email-forward path. Your HOD forwards the text NOC to sudarshan@iitrpr.ac.in from their official institutional email. The forward itself counts as the signature.' },
-      { q: 'How do I download and upload the NOC?', a: 'Both happen on your dashboard at samagama.in. Use the "Download blank NOC" and "Upload signed NOC (PDF)" buttons.' },
-      { q: 'What if my NOC is not formally verified yet?', a: 'Upload a self-declaration on your profile — a tentative offer letter will be issued immediately. The formal offer letter follows once NOC clears verification.' },
-      { q: 'My online course won\'t issue an NOC. What do I do?', a: 'The internship is only for students in a full-time degree programme. Online-only courses do not make a candidate eligible unless concurrently enrolled in a full-time degree.' },
-      { q: 'My HOD wants written confirmation before signing. What do I show them?', a: 'Upload a self-declaration on samagama.in — a tentative offer letter is issued immediately. Hand that to your HOD as written confirmation.' },
-      { q: 'Can Prof. Sudarshan or an IIT Ropar faculty sign my NOC?', a: 'No — your NOC must be signed by an authorised signatory at the institution where you are enrolled as a student.' },
-    ],
-  },
-  {
     category: 'Selection & Offer Letter',
     icon: '📨',
     questions: [
@@ -67,6 +37,43 @@ const seedData = [
     ],
   },
   {
+    category: 'NOC (No Objection Certificate)',
+    icon: '📄',
+    questions: [
+      { q: 'What dates do I put on the NOC?', a: 'Your chosen start date to start + 2 months (with up to 1 month grace), ensuring end date is on or before 31 December 2026.' },
+      { q: 'Who can sign the NOC?', a: 'Any authorised signatory at your college: HOD, Acting HOD, Principal, Dean, Director, or Training & Placement Officer. For dual-degree students, either institution can sign.' },
+      { q: 'When do I submit the NOC? Is the deadline hard?', a: 'There is no hard deadline, but submit it as early as possible to join the summer cohort and get the full experience with TA support.' },
+      { q: 'What format should I use for the NOC?', a: 'We provide a printable NOC format on your dashboard. You do not need to draft anything yourself or use college letterhead.' },
+      { q: 'Can my college use their own NOC format?', a: 'Yes, as long as it has: the signing authority\'s handwritten signature, their official email, your full name, and your signature.' },
+      { q: 'Does the NOC need to be signed by hand?', a: 'Yes — handwritten signature, institutional rubber stamp, and signatory\'s email are required. Digital signatures are not accepted on the PDF path.' },
+      { q: 'Can my HOD email the NOC instead of signing a printout?', a: 'Yes — use the email-forward path. Your HOD forwards the text NOC to sudarshan@iitrpr.ac.in from their official institutional email. The forward itself counts as the signature.' },
+      { q: 'How do I download and upload the NOC?', a: 'Both happen on your dashboard at samagama.in. Use the "Download blank NOC" and "Upload signed NOC (PDF)" buttons.' },
+      { q: 'What if my NOC is not formally verified yet?', a: 'Upload a self-declaration on your profile — a tentative offer letter will be issued immediately. The formal offer letter follows once NOC clears verification.' },
+      { q: 'My online course won\'t issue an NOC. What do I do?', a: 'The internship is only for students in a full-time degree programme. Online-only courses do not make a candidate eligible unless concurrently enrolled in a full-time degree.' },
+      { q: 'My HOD wants written confirmation before signing. What do I show them?', a: 'Upload a self-declaration on samagama.in — a tentative offer letter is issued immediately. Hand that to your HOD as written confirmation.' },
+      { q: 'Can Prof. Sudarshan or an IIT Ropar faculty sign my NOC?', a: 'No — your NOC must be signed by an authorised signatory at the institution where you are enrolled as a student.' },
+    ],
+  },
+  {
+    category: 'Timing & Dates',
+    icon: '📅',
+    questions: [
+      { q: 'When can I start?', a: 'Any time in 2026, but your internship must finish by 31 December 2026. Starting as early as possible is strongly recommended to benefit from cohort networking, TA support, and structured training.' },
+      { q: 'How long is the internship?', a: 'Two months from your chosen start date, with an optional one-month grace period. End must land on or before 31 December 2026.' },
+      { q: 'Can I start later if I have exams now?', a: 'Yes — wait until your exams are done, then opt in and start. Do not attempt to juggle this internship with ongoing exams.' },
+      { q: 'Can I start with the cohort and take relaxation during my exams?', a: 'No. VINS is a full-attention internship (6–10 hours/day). Splitting attention with exams damages both. Defer your start to after your exams.' },
+      { q: 'Can I take leave for an exam scheduled in June?', a: 'No — the 55-day continuous window is non-negotiable. Split attention genuinely damages both exam preparation and internship work.' },
+      { q: 'Are orientation session recordings shared?', a: 'Recordings of the sessions will not be provided. However, we may provide access to an abridged version of a talk or session if considered important.' },
+    ],
+  },
+  {
+    category: 'Interviews',
+    icon: '🎤',
+    questions: [
+      { q: 'My interview is not marked as complete. What do I do?', a: 'A data-sync issue sometimes occurs. The team will check and manually mark it as complete within 1–2 hours. If not resolved, write to sudarshansudarshan@gmail.com.' },
+    ],
+  },
+  {
     category: 'Work & Mentorship',
     icon: '💻',
     questions: [
@@ -80,20 +87,6 @@ const seedData = [
     ],
   },
   {
-    category: 'Code of Conduct',
-    icon: '⚖️',
-    questions: [
-      { q: 'What are the official communication channels?', a: '1) Announcements on samagama.in, 2) Yaksha chat (use #escalate for a human), 3) Discussion forum, 4) Email to sudarshansudarshan@gmail.com as last resort. WhatsApp support is cancelled. Unofficial groups are strictly prohibited.' },
-    ],
-  },
-  {
-    category: 'Interviews',
-    icon: '🎤',
-    questions: [
-      { q: 'My interview is not marked as complete. What do I do?', a: 'A data-sync issue sometimes occurs. The team will check and manually mark it as complete within 1–2 hours. If not resolved, write to sudarshansudarshan@gmail.com.' },
-    ],
-  },
-  {
     category: 'Certificate',
     icon: '🎓',
     questions: [
@@ -101,6 +94,13 @@ const seedData = [
       { q: 'Does the certificate specify online or offline mode?', a: 'No — the certificate is the same for both tracks and does not specify the mode of completion.' },
       { q: 'Will the certificate be a physical hardcopy or e-certificate?', a: 'E-certificate — you download it from your dashboard after completing both Bronze and Silver. It is digitally signed and verifiable from our database.' },
       { q: 'Is there a WhatsApp group for candidates?', a: 'No. See §6.1 in the FAQ for official communication channels. WhatsApp support is cancelled and unofficial groups are prohibited.' },
+    ],
+  },
+  {
+    category: 'Code of Conduct',
+    icon: '⚖️',
+    questions: [
+      { q: 'What are the official communication channels?', a: '1) Announcements on samagama.in, 2) Yaksha chat (use #escalate for a human), 3) Discussion forum, 4) Email to sudarshansudarshan@gmail.com as last resort. WhatsApp support is cancelled. Unofficial groups are strictly prohibited.' },
     ],
   },
   {
@@ -134,13 +134,6 @@ const seedData = [
     ],
   },
   {
-    category: 'Yaksha Chat',
-    icon: '💬',
-    questions: [
-      { q: 'I\'m unable to type in the chat after clicking "Interact with Yaksha".', a: 'Scroll up to the top of your window and click the "Chat with Yaksha" button to activate the chat input.' },
-    ],
-  },
-  {
     category: 'ViBe Platform',
     icon: '🖥️',
     questions: [
@@ -163,6 +156,13 @@ const seedData = [
       { q: 'Are the same proctoring rules applied to every course?', a: 'No — ViBe\'s proctoring is modular. The instructor decides which checks are active for their course. Always check course-specific guidelines.' },
       { q: 'What does the "quiet helper" on ViBe do?', a: 'It checks in real time: face is visible, only one face in frame, enough light, no background voices, you\'re looking at the screen. Brief normal movements are fine.' },
       { q: 'Does ViBe record long videos of me?', a: 'No — ViBe does not continuously record. Camera and microphone are used for real-time presence checks only. No long recordings are stored.' },
+    ],
+  },
+  {
+    category: 'Yaksha Chat',
+    icon: '💬',
+    questions: [
+      { q: 'I\'m unable to type in the chat after clicking "Interact with Yaksha".', a: 'Scroll up to the top of your window and click the "Chat with Yaksha" button to activate the chat input.' },
     ],
   },
   {

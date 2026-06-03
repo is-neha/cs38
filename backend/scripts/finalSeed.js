@@ -1058,19 +1058,21 @@ const myBigDataset = [
 const groupDataBySection = (flatDataset) => {
   const categoryMap = {
     '1': { category: 'About the Internship', icon: '📋' },
-    '2': { category: 'Timing & Dates', icon: '📅' },
-    '3': { category: 'NOC (No Objection Certificate)', icon: '📄' },
     '4': { category: 'Selection & Offer Letter', icon: '📨' },
-    '5': { category: 'Work & Mentorship', icon: '💻' },
-    '6': { category: 'Code of Conduct', icon: '⚖️' },
+    '3': { category: 'NOC (No Objection Certificate)', icon: '📄' },
+    '2': { category: 'Timing & Dates', icon: '📅' },
     '7': { category: 'Interviews', icon: '🎤' },
+    '5': { category: 'Work & Mentorship', icon: '💻' },
     '8': { category: 'Certificate', icon: '🎓' },
+    '6': { category: 'Code of Conduct', icon: '⚖️' },
     '9': { category: 'Rosetta (Internship Journal)', icon: '📓' },
     '10': { category: 'Coursework & ViBe LMS', icon: '📚' },
-    '11': { category: 'Yaksha Chat', icon: '💬' },
     '12': { category: 'ViBe Platform', icon: '🖥️' },
+    '11': { category: 'Yaksha Chat', icon: '💬' },
     '13': { category: 'Team Formation', icon: '👥' }
   };
+
+  const sectionPriority = ['1', '4', '3', '2', '7', '5', '8', '6', '9', '10', '12', '11', '13'];
 
   const grouped = {};
 
@@ -1097,7 +1099,11 @@ const groupDataBySection = (flatDataset) => {
     });
   });
 
-  return Object.values(grouped);
+  return Object.values(grouped).sort((a, b) => {
+    const aKey = Object.keys(categoryMap).find(k => categoryMap[k].category === a.category);
+    const bKey = Object.keys(categoryMap).find(k => categoryMap[k].category === b.category);
+    return sectionPriority.indexOf(aKey) - sectionPriority.indexOf(bKey);
+  });
 };
 
 // Process your array safely

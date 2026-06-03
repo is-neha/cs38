@@ -66,6 +66,22 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/ai', aiRoutes);
 
 /* ── FAQ listing (cached 5 min, sorted by views) ── */
+const CATEGORY_PRIORITY = [
+  'About the Internship',
+  'Selection & Offer Letter',
+  'NOC (No Objection Certificate)',
+  'Timing & Dates',
+  'Interviews',
+  'Work & Mentorship',
+  'Certificate',
+  'Code of Conduct',
+  'Rosetta (Internship Journal)',
+  'Coursework & ViBe LMS',
+  'ViBe Platform',
+  'Yaksha Chat',
+  'Team Formation'
+];
+
 app.get('/api/faqs', async (req, res) => {
   try {
     const now = Date.now();
@@ -76,6 +92,11 @@ app.get('/api/faqs', async (req, res) => {
     for (const cat of faqs) {
       cat.questions.sort((a, b) => (b.views || 0) - (a.views || 0));
     }
+    faqs.sort((a, b) => {
+      const ai = CATEGORY_PRIORITY.indexOf(a.category);
+      const bi = CATEGORY_PRIORITY.indexOf(b.category);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
     faqCache = faqs;
     faqCacheTime = now;
     res.json(faqs);
@@ -193,6 +214,7 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
           q.viewedBy.push(userId);
           q.views = (q.views || 0) + 1;
           await cat.save();
+          faqCache = null;
         }
         views = cat.questions.id(req.params.qId)?.views || 0;
       }
@@ -203,6 +225,7 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
         { new: true, projection: { 'questions.$': 1 } },
       );
       views = updated?.questions?.[0]?.views || 0;
+      faqCache = null;
     }
     res.json({ views });
   } catch (err) {
@@ -342,6 +365,11 @@ app.get('/api/home', async (req, res) => {
       ]),
     ]);
 
+    faqData.sort((a, b) => {
+      const ai = CATEGORY_PRIORITY.indexOf(a.category);
+      const bi = CATEGORY_PRIORITY.indexOf(b.category);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
     const categoryCards = faqData.map(c => ({
       _id: c._id,
       category: c.category,
@@ -461,83 +489,76 @@ app.get('/api/ai/related', async (req, res) => {
   }
 });
 
-/* ── AI: Check duplicates ── */
+/* ── AI: Check duplicates (compares against ALL FAQ + OAQ) ── */
 app.post('/api/ai/check-duplicate', async (req, res) => {
   try {
     const { question } = req.body;
     if (!question || !question.trim()) return res.json({ duplicates: [], outOfScope: false });
 
-    const q = question.toLowerCase().trim();
-    const words = q.split(/\s+/).filter(w => w.length > 2);
-    if (words.length === 0) return res.json({ duplicates: [], outOfScope: false });
-
-    /* fuzzy char-level regex — same as FAQ search */
-    const fuzzyTerms = words.map(w => new RegExp(w.split('').join('.*'), 'i'));
-    const exactWords = words.map(w => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-
-    const [faqDupes, oaqDupes] = await Promise.all([
-      FAQ.find({ $or: exactWords.flatMap(r => [{ 'questions.q': r }, { 'questions.a': r }]) }).lean(),
-      OAQ.find({ $or: exactWords.map(r => ({ question: r })), status: { $ne: 'rejected' } }).lean(),
+    const [allFaqs, allOaqs] = await Promise.all([
+      FAQ.find().lean(),
+      OAQ.find({ status: { $ne: 'rejected' } }).select('question _id').lean(),
     ]);
 
-    /* fuzzy word-overlap score using full question */
-    const allQWords = q.split(/\s+/);
-    const score = (text) => {
-      const lower = text.toLowerCase();
-      const matched = allQWords.filter(w => lower.includes(w)).length;
-      return matched / allQWords.length;
-    };
-
-    /* fuzzy char-overlap score for out-of-scope detection */
-    const fuzzyScore = (text) => {
-      const lower = text.toLowerCase();
-      const matches = fuzzyTerms.filter(reg => reg.test(lower));
-      return matches.length / words.length;
-    };
-
-    const duplicates = [
-      ...faqDupes.flatMap(c =>
-        c.questions
-          .filter(item => score(item.q) > 0.4)
-          .map(i => ({ text: i.q, source: 'FAQ', score: score(i.q) }))
+    const existingQuestions = [
+      ...allFaqs.flatMap(c =>
+        (c.questions || []).map(q => ({
+          text: q.q,
+          source: 'FAQ',
+          category: c.category,
+          catId: c._id,
+        }))
       ),
-      ...oaqDupes
-        .filter(o => score(o.question) > 0.4)
-        .map(o => ({ text: o.question, source: 'OAQ', id: o._id, score: score(o.question) })),
-    ]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 1);
+      ...allOaqs.map(o => ({
+        text: o.question,
+        source: 'OAQ',
+        id: o._id,
+      })),
+    ];
 
+    let duplicates = [];
     let outOfScope = false;
-    if (duplicates.length === 0) {
-      const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
-      let bestFuzzy = 0;
-      for (const text of allFaqTexts) {
-        const fs = fuzzyScore(text);
-        if (fs > bestFuzzy) bestFuzzy = fs;
-      }
-      outOfScope = bestFuzzy < 0.2;
-    }
 
-    /* Validate with Groq AI if available */
-    if (duplicates.length > 0 && groqApiKey) {
+    if (groqApiKey && existingQuestions.length > 0) {
       const groq = new Groq({ apiKey: groqApiKey });
-      const dup = duplicates[0];
+      const existingFormatted = existingQuestions
+        .map((item, i) => `[${i}] ${item.text}`)
+        .join('\n');
+
+      const prompt = `You are a duplicate question detector. Below is a list of existing questions. Determine if any of them ask the same thing as the new question.
+
+Rules:
+- Two questions are duplicates if a user asking one would be fully satisfied by the answer to the other.
+- If the new question is a subset of an existing question (asks about one part), it IS a duplicate.
+- Ignore typos, extra/missing words, and grammatical differences.
+- Treat paraphrases as duplicates.
+- If none match, return isDuplicate: false.
+- If one matches, return its index from the list.
+
+Existing questions:
+${existingFormatted}
+
+New question: "${question.trim()}"
+
+Reply with ONLY a JSON object:
+{
+  "isDuplicate": true/false,
+  "matchIndex": null or number,
+  "reason": "brief explanation"
+}`;
+
       const completion = await groq.chat.completions.create({
-        messages: [{
-          role: 'user',
-          content: `Are these two questions asking the same thing?
-Existing: "${dup.text}"
-New: "${question.trim()}"
-Reply ONLY with JSON: { "isDuplicate": true/false, "reason": "brief explanation" }`,
-        }],
+        messages: [{ role: 'user', content: prompt }],
         model: 'llama-3.3-70b-versatile',
         temperature: 0.1,
         response_format: { type: 'json_object' },
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-      if (!result.isDuplicate) {
-        return res.json({ duplicates: [], outOfScope: false });
+      if (result.isDuplicate && result.matchIndex !== null && result.matchIndex !== undefined) {
+        const dup = existingQuestions[result.matchIndex];
+        if (dup) {
+          duplicates = [dup];
+        }
       }
     }
 

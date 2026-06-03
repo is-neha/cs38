@@ -11,41 +11,124 @@
 
 .welcome-page--dark {
   background:
-    radial-gradient(circle at 18% 12%, rgba(99, 102, 241, 0.32), transparent 34%),
-    radial-gradient(circle at 82% 72%, rgba(124, 58, 237, 0.22), transparent 32%),
-    linear-gradient(135deg, #23175b 0%, #160b38 52%, #24114c 100%);
+    radial-gradient(ellipse at 10% 20%, rgba(99, 102, 241, 0.25), transparent 40%),
+    radial-gradient(ellipse at 90% 80%, rgba(139, 92, 246, 0.2), transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08), transparent 50%),
+    linear-gradient(145deg, #0c0a1d 0%, #1a1040 35%, #0f0a2a 65%, #1a0835 100%);
 }
 
 .welcome-page--light {
   color: #111827;
   background:
-    radial-gradient(circle at 16% 16%, rgba(99, 102, 241, 0.16), transparent 34%),
-    radial-gradient(circle at 84% 76%, rgba(14, 165, 233, 0.16), transparent 32%),
-    linear-gradient(135deg, #eef2ff 0%, #f8fbff 48%, #e0f2fe 100%);
+    radial-gradient(ellipse at 10% 20%, rgba(99, 102, 241, 0.1), transparent 40%),
+    radial-gradient(ellipse at 90% 80%, rgba(14, 165, 233, 0.1), transparent 40%),
+    radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.04), transparent 50%),
+    linear-gradient(145deg, #f0f2ff 0%, #e8eeff 35%, #f5f3ff 65%, #e0f2fe 100%);
 }
 
-.welcome-theme-toggle {
+/* ── Particles background ── */
+.welcome-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.welcome-particle {
   position: absolute;
-  top: 24px;
-  right: 28px;
-  z-index: 2;
-  min-width: 82px;
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  border-radius: 999px;
-  padding: 9px 15px;
-  background: rgba(255, 255, 255, 0.12);
-  color: currentColor;
-  font-weight: 800;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: particleFloat 10s ease-in-out infinite;
+}
+
+.welcome-particle:nth-child(1) { left: 10%; top: 20%; width: 4px; height: 4px; animation-delay: 0s; animation-duration: 12s; }
+.welcome-particle:nth-child(2) { left: 25%; top: 60%; width: 6px; height: 6px; animation-delay: 1s; animation-duration: 14s; }
+.welcome-particle:nth-child(3) { left: 40%; top: 30%; width: 3px; height: 3px; animation-delay: 2s; animation-duration: 10s; }
+.welcome-particle:nth-child(4) { left: 55%; top: 70%; width: 5px; height: 5px; animation-delay: 0.5s; animation-duration: 16s; }
+.welcome-particle:nth-child(5) { left: 70%; top: 15%; width: 4px; height: 4px; animation-delay: 3s; animation-duration: 11s; }
+.welcome-particle:nth-child(6) { left: 85%; top: 55%; width: 7px; height: 7px; animation-delay: 1.5s; animation-duration: 13s; }
+.welcome-particle:nth-child(7) { left: 15%; top: 80%; width: 3px; height: 3px; animation-delay: 4s; animation-duration: 15s; }
+.welcome-particle:nth-child(8) { left: 50%; top: 10%; width: 5px; height: 5px; animation-delay: 2.5s; animation-duration: 9s; }
+.welcome-particle:nth-child(9) { left: 65%; top: 85%; width: 4px; height: 4px; animation-delay: 5s; animation-duration: 12s; }
+.welcome-particle:nth-child(10) { left: 35%; top: 45%; width: 6px; height: 6px; animation-delay: 3.5s; animation-duration: 14s; }
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
+  25% { transform: translateY(-30px) translateX(10px) scale(1.2); opacity: 0.6; }
+  50% { transform: translateY(-10px) translateX(-10px) scale(0.8); opacity: 0.4; }
+  75% { transform: translateY(-40px) translateX(15px) scale(1.1); opacity: 0.7; }
+}
+
+.welcome-page--light .welcome-particle {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+/* ── Bulb toggle ── */
+.welcome-bulb-toggle {
+  position: fixed;
+  top: 66px;
+  right: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: none;
+  border: none;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  backdrop-filter: blur(14px);
+  z-index: 101;
+  padding: 0;
+  animation: bulbSwing 4s ease-in-out infinite;
+  transform-origin: top center;
 }
 
-.welcome-page--light .welcome-theme-toggle {
-  border-color: rgba(79, 70, 229, 0.18);
-  background: rgba(255, 255, 255, 0.82);
+@keyframes bulbSwing {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
 }
 
+.welcome-bulb-toggle:hover {
+  animation-duration: 1.5s;
+}
+
+.welcome-bulb-cord {
+  width: 8px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.welcome-bulb-icon {
+  width: 30px;
+  height: 36px;
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.welcome-bulb-toggle:hover .welcome-bulb-icon {
+  transform: scale(1.15);
+}
+
+.welcome-bulb-toggle:active .welcome-bulb-icon {
+  transform: scale(0.85);
+}
+
+.welcome-bulb-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+}
+
+.welcome-page--light .welcome-bulb-cord {
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.welcome-page--light .welcome-bulb-svg {
+  filter: drop-shadow(0 2px 8px rgba(251,191,36,0.25));
+}
+
+/* ── Card ── */
 .welcome-card {
   position: relative;
   width: min(100%, 390px);
@@ -159,48 +242,10 @@
   opacity: 0.26;
 }
 
-.welcome-orbit {
-  position: absolute;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.38);
-}
-
-.welcome-page--light .welcome-orbit {
-  background: rgba(79, 70, 229, 0.58);
-  box-shadow: 0 0 20px rgba(79, 70, 229, 0.24);
-}
-
-.welcome-orbit--one {
-  width: 8px;
-  height: 8px;
-  right: -42px;
-  top: 42%;
-}
-
-.welcome-orbit--two {
-  width: 6px;
-  height: 6px;
-  right: -112px;
-  top: 58%;
-}
-
-.welcome-orbit--three {
-  width: 8px;
-  height: 8px;
-  right: -184px;
-  top: 50%;
-}
-
 @media (max-width: 560px) {
   .welcome-page {
     min-height: calc(100vh - 64px);
     padding: 72px 16px 36px;
-  }
-
-  .welcome-theme-toggle {
-    top: 18px;
-    right: 18px;
   }
 
   .welcome-card {
@@ -211,7 +256,7 @@
     font-size: 2rem;
   }
 
-  .welcome-orbit {
+  .welcome-particle {
     display: none;
   }
 }

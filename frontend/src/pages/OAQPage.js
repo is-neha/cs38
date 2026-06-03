@@ -279,8 +279,19 @@ function OAQPage() {
                   <ul style={{ margin: '6px 0 4px 18px', fontSize: '0.85rem' }}>
                     {duplicates.map((d, i) => (
                       <li key={i}>
-                        {d.source === 'FAQ' ? '📖 FAQ: ' : '💬 OAQ: '}
-                        {d.text}
+                        {d.source === 'FAQ' ? (
+                          <span
+                            style={{ cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }}
+                            onClick={() => navigate(`/faq?category=${encodeURIComponent(d.category)}&question=${encodeURIComponent(d.text)}`)}
+                            title="Click to view in FAQ"
+                          >
+                            📖 FAQ: {d.text}
+                          </span>
+                        ) : (
+                          <span>
+                            💬 OAQ: {d.text}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>

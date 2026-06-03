@@ -30,7 +30,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import FAQItem from './FAQItem';
 import AutocorrectInput from './AutocorrectInput';
@@ -92,6 +92,37 @@ function FAQPage() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  // ── Scroll to category from URL param ──
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const catParam = searchParams.get('category');
+    const qParam = searchParams.get('question');
+    if (!catParam || faqData.length === 0) return;
+    if (qParam) {
+      for (const cat of faqData) {
+        const match = cat.questions.find(q => q.q === qParam);
+        if (match) {
+          setOpenQuestionId(match._id);
+          setTimeout(() => {
+            const el = document.getElementById(`faq-${match._id}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 350);
+          break;
+        }
+      }
+    } else {
+      const id = `faq-cat-${catParam.replace(/\s+/g, '-')}`;
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const cat = faqData.find(c => c.category === catParam);
+        if (cat && cat.questions.length > 0) {
+          setOpenQuestionId(cat.questions[0]._id);
+        }
+      }
+    }
+  }, [searchParams, faqData]);
 
   // ── Client-side search filtering ──
   // If the trimmed query is empty or shorter than 2 characters, return all
@@ -313,7 +344,7 @@ function FAQPage() {
             </div>
             <div className="faq-list">
               {displayedData.map((category, catIdx) => (
-                <div key={catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.05}s` }}>
+                <div id={`faq-cat-${category.category.replace(/\s+/g, '-')}`} key={catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.05}s` }}>
                   <div className="faq-category-card__header">
                     <span className="faq-category-card__icon">{category.icon}</span>
                     <h2 className="faq-category-card__title">{category.category}</h2>
@@ -345,7 +376,7 @@ function FAQPage() {
           /* ── Default grid view — category cards arranged in a responsive grid ── */
           <div className="faq-grid" ref={gridRef}>
             {displayedData.map((category, catIdx) => (
-              <div key={category._id || catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.06}s` }}>
+              <div id={`faq-cat-${category.category.replace(/\s+/g, '-')}`} key={category._id || catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.06}s` }}>
                 <div className="faq-category-card__header">
                   <span className="faq-category-card__icon">{category.icon}</span>
                   <h2 className="faq-category-card__title">{category.category}</h2>

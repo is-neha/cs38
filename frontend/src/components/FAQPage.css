@@ -463,6 +463,7 @@
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
+  scroll-margin-top: 80px;
   animation: cardIn 0.45s ease both;
   transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
 }

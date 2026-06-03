@@ -6,7 +6,7 @@
 .home-gradient {
   position: absolute;
   inset: 0 0 auto;
-  height: 440px;
+  height: 350px;
   background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 60%, #3b82f6 100%);
   border-radius: 0 0 30px 30px;
   z-index: 0;
@@ -89,9 +89,10 @@
   align-items: center;
   background: #fff;
   border-radius: 14px;
-  padding: 0 18px;
+  padding: 0 14px 0 0;
   box-shadow: var(--shadow-lg);
   transition: background 0.3s, box-shadow 0.3s;
+  position: relative;
 }
 
 .home-search-icon {
@@ -99,17 +100,31 @@
   height: 20px;
   color: var(--text-light);
   flex-shrink: 0;
+  margin: 0 10px 0 16px;
 }
 
 .home-search-input {
-  flex: 1;
+  width: 100%;
   border: none;
-  padding: 16px 14px;
+  padding: 16px 0;
   font-size: 1rem;
   font-family: inherit;
   background: transparent;
   outline: none;
   color: var(--text-secondary);
+  box-sizing: border-box;
+}
+
+.home-search .autocorrect-wrapper {
+  flex: 1;
+  position: static;
+}
+
+.home-hero .faq-search-dropdown,
+.home-hero .faq-search-option,
+.home-hero .faq-search-option-question,
+.home-hero .faq-search-option-category {
+  text-align: left;
 }
 
 .home-search-input::placeholder {
@@ -763,7 +778,7 @@
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .home-title { font-size: 1.8rem; }
-  .home-gradient { height: 360px; }
+  .home-gradient { height: 280px; }
   .home-category-grid { grid-template-columns: repeat(2, 1fr); }
   .home-latest-item { flex-direction: column; align-items: flex-start; gap: 4px; }
   .home-latest-item__meta { margin-left: 0; }

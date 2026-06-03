@@ -133,7 +133,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-/* ── Submit OAQ (with duplicate check) ── */
+/* ── Submit OAQ (with AI duplicate check against ALL existing questions) ── */
 router.post('/', auth, async (req, res) => {
   try {
     const { question, description, category } = req.body;
@@ -141,49 +141,57 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ error: 'Question is required' });
     }
 
-    const q = question.toLowerCase().trim();
-    const words = q.split(/\s+/).filter(w => w.length > 2);
-    const wordRegexes = words.map(w => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-
-    const [faqDupes, oaqDupes] = await Promise.all([
-      FAQ.find({ $or: wordRegexes.flatMap(r => [{ 'questions.q': r }, { 'questions.a': r }]) }).lean(),
-      OAQ.find({ $or: wordRegexes.map(r => ({ question: r })), status: { $ne: 'rejected' } }).lean(),
+    /* Fetch all FAQ + OAQ questions for AI comparison */
+    const [allFaqs, allOaqs] = await Promise.all([
+      FAQ.find().lean(),
+      OAQ.find({ status: { $ne: 'rejected' } }).select('question _id').lean(),
     ]);
 
-    /* score using ALL words in the question */
-    const allQWords = q.split(/\s+/);
-    const score = (text) => {
-      const lower = text.toLowerCase();
-      const matched = allQWords.filter(w => lower.includes(w)).length;
-      return matched / allQWords.length;
-    };
-
-    const allDupes = [
-      ...faqDupes.flatMap(c =>
-        c.questions
-          .filter(item => score(item.q) > 0.4)
-          .map(i => ({ text: i.q, source: 'FAQ', score: score(i.q) }))
+    const existingQuestions = [
+      ...allFaqs.flatMap(c =>
+        (c.questions || []).map(q => ({
+          text: q.q,
+          source: 'FAQ',
+          category: c.category,
+          catId: c._id,
+        }))
       ),
-      ...oaqDupes
-        .filter(o => score(o.question) > 0.4)
-        .map(o => ({ text: o.question, source: 'OAQ', id: o._id, score: score(o.question) })),
-    ].sort((a, b) => b.score - a.score);
-    const topDupes = allDupes.slice(0, 1);
+      ...allOaqs.map(o => ({
+        text: o.question,
+        source: 'OAQ',
+        id: o._id,
+      })),
+    ];
 
-    if (topDupes.length > 0 && groqApiKey) {
-      /* Use Groq AI to decide if it's truly a duplicate */
+    if (groqApiKey && existingQuestions.length > 0) {
       const groq = new Groq({ apiKey: groqApiKey });
-      const dup = topDupes[0];
-      const prompt = `You are comparing two questions to decide if they are asking the same thing.
 
-Existing question: "${dup.text}"
+      const existingFormatted = existingQuestions
+        .map((item, i) => `[${i}] ${item.text}`)
+        .join('\n');
+
+      const prompt = `You are a duplicate question detector. Below is a list of existing questions. Determine if any of them ask the same thing as the new question.
+
+Rules:
+- Two questions are duplicates if a user asking one would be fully satisfied by the answer to the other.
+- If the new question is a subset of an existing question (asks about one part), it IS a duplicate.
+- Ignore typos, extra/missing words, and grammatical differences.
+- Treat paraphrases as duplicates.
+- If none match, return isDuplicate: false.
+- If one matches, return its index from the list.
+
+Existing questions:
+${existingFormatted}
+
 New question: "${question.trim()}"
 
-Are these two questions asking the same thing? Reply with ONLY a JSON object:
+Reply with ONLY a JSON object:
 {
   "isDuplicate": true/false,
+  "matchIndex": null or number,
   "reason": "brief explanation"
 }`;
+
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: 'llama-3.3-70b-versatile',
@@ -191,25 +199,28 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
         response_format: { type: 'json_object' },
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-      if (result.isDuplicate) {
-        /* Notify original asker if duplicate is an OAQ */
-        if (dup.source === 'OAQ' && dup.id) {
-          const originalOaq = await OAQ.findById(dup.id).populate('submittedBy', 'name');
-          if (originalOaq && originalOaq.submittedBy &&
-              originalOaq.submittedBy._id.toString() !== req.user._id.toString()) {
-            await Notification.create({
-              user: originalOaq.submittedBy._id,
-              type: 'related',
-              message: `${req.user.name} asked a similar question: "${question.trim().slice(0, 60)}${question.trim().length > 60 ? '…' : ''}"`,
-              link: '/community',
-            });
+      if (result.isDuplicate && result.matchIndex !== null && result.matchIndex !== undefined) {
+        const dup = existingQuestions[result.matchIndex];
+        if (!dup) {
+          /* fall through if index is out of bounds */
+        } else {
+          const topDupes = [dup];
+          /* Notify original asker if duplicate is an OAQ */
+          if (dup.source === 'OAQ' && dup.id) {
+            const originalOaq = await OAQ.findById(dup.id).populate('submittedBy', 'name');
+            if (originalOaq && originalOaq.submittedBy &&
+                originalOaq.submittedBy._id.toString() !== req.user._id.toString()) {
+              await Notification.create({
+                user: originalOaq.submittedBy._id,
+                type: 'related',
+                message: `${req.user.name} asked a similar question: "${question.trim().slice(0, 60)}${question.trim().length > 60 ? '…' : ''}"`,
+                link: '/community',
+              });
+            }
           }
+          return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '' });
         }
-        return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '' });
       }
-    } else if (topDupes.length > 0) {
-      /* No Groq key — fall back to word-overlap blocking */
-      return res.status(409).json({ duplicates: topDupes });
     }
 
     const oaq = await OAQ.create({
@@ -226,6 +237,8 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
     awardPoints(req.user._id, 5);
 
     /* ── Similarity-frequency auto-promote ── */
+    const q = question.toLowerCase().trim();
+    const words = q.split(/\s+/).filter(w => w.length > 2);
     const similarOpen = await OAQ.find({
       _id: { $ne: oaq._id },
       question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
@@ -248,7 +261,7 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
         const completion = await groq.chat.completions.create({
           messages: [{
             role: 'user',
-            content: `Are these two questions asking about the same topic?
+            content: `Are these two questions asking about the same topic? Consider them the same if one asks what the other asks, even with different wording or minor typos.
 Question 1: "${candidate.question}"
 Question 2: "${question.trim()}"
 Reply ONLY with JSON: { "sameTopic": true/false }`,
