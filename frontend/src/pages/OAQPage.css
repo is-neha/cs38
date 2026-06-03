@@ -2,31 +2,31 @@
  * OAQPage.css — Community Q&A Page Styles
  *
  * OVERALL PURPOSE:
- * Styles the Community Q&A page including the question submission card,
- * the question list (OAQ cards with voting columns), expandable answer
- * sections, answer forms, a report modal overlay, a toast notification,
- * and dark-mode overrides.
+ *   Styles the Community Q&A page including the question submission card,
+ *   the question list (OAQ cards with voting columns), expandable answer
+ *   sections, answer forms, a report modal overlay, a toast notification,
+ *   and dark-mode overrides.
  *
  * LAYOUT APPROACH:
- * - Uses a max-width container (800px) centered on the page.
- * - Each OAQ question is displayed as a horizontal card with a narrow
- * voting column on the left and the body content on the right.
- * - Answers inside an expanded card use a similar vote-column layout
- * but with smaller controls.
- * - The report modal is a fixed overlay centered on the viewport.
- * - The toast notification is fixed at the bottom-center.
+ *   - Uses a max-width container (800px) centered on the page.
+ *   - Each OAQ question is displayed as a horizontal card with a narrow
+ *     voting column on the left and the body content on the right.
+ *   - Answers inside an expanded card use a similar vote-column layout
+ *     but with smaller controls.
+ *   - The report modal is a fixed overlay centered on the viewport.
+ *   - The toast notification is fixed at the bottom-center.
  *
  * RESPONSIVE BEHAVIOR:
- * - The page uses CSS custom properties (var(--...)) for theming.
- * - No explicit @media breakpoints are defined in this file; layout
- * responsiveness is handled by flexbox wrapping and percentage widths.
- * - On narrow viewports the container's padding shrinks, and long text
- * wraps naturally inside flex children (min-width: 0 on .oaq-card__body).
+ *   - The page uses CSS custom properties (var(--...)) for theming.
+ *   - No explicit @media breakpoints are defined in this file; layout
+ *     responsiveness is handled by flexbox wrapping and percentage widths.
+ *   - On narrow viewports the container's padding shrinks, and long text
+ *     wraps naturally inside flex children (min-width: 0 on .oaq-card__body).
  *
  * DARK MODE:
- * - Overrides are scoped to [data-theme="dark"] and adjust specific
- * elements (promoted cards, related items, answer backgrounds, etc.)
- * to darker color values.
+ *   - Overrides are scoped to [data-theme="dark"] and adjust specific
+ *     elements (promoted cards, related items, answer backgrounds, etc.)
+ *     to darker color values.
  */
 
 /* ============================================================
@@ -102,19 +102,24 @@
 .oaq-textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.92rem;
   font-family: inherit;
   resize: vertical;
   outline: none;
   transition: border-color 0.2s;
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  background: var(--bg-card);
 }
 
 .oaq-textarea:focus {
   border-color: #818cf8;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+[data-theme="dark"] .oaq-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
 /* Smaller textarea variant (description, answer input) */
@@ -188,12 +193,12 @@
 .oaq-select {
   width: 100%;
   padding: 10px 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.9rem;
   font-family: inherit;
   outline: none;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   background: var(--bg-card);
   cursor: pointer;
   transition: border-color 0.2s;
@@ -204,55 +209,47 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+[data-theme="dark"] .oaq-select:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
 .oaq-category-row {
   margin-top: 8px;
 }
 
 /* ============================================================
-   SORT TOOLBAR
+   FILTER TABS
    ============================================================ */
 
-.oaq-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-/* Question count label */
-.oaq-count {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* Segmented button group for sort */
-.oaq-sort {
+.oaq-tabs {
   display: flex;
   gap: 4px;
-  background: var(--bg-muted);
-  border-radius: 8px;
-  padding: 3px;
+  margin-bottom: 12px;
 }
 
-.oaq-sort-btn {
-  padding: 6px 14px;
-  border: none;
-  background: none;
-  border-radius: 6px;
+.oaq-tab {
+  padding: 7px 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 8px;
   font-family: inherit;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
-/* Active sort button gets a card-like elevation */
-.oaq-sort-btn.active {
-  background: var(--bg-card);
+.oaq-tab:hover {
+  background: var(--bg-muted);
   color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
+}
+
+.oaq-tab.active {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
 }
 
 /* ============================================================
@@ -341,13 +338,15 @@
 }
 
 /* Upvote button turns green on hover */
-.oaq-vote-btn--up:hover {
+.oaq-vote-btn--up:hover,
+.oaq-vote-btn--up.oaq-vote-btn--active {
   background: var(--success-bg);
   color: var(--success);
 }
 
 /* Downvote button turns red on hover */
-.oaq-vote-btn--down:hover {
+.oaq-vote-btn--down:hover,
+.oaq-vote-btn--down.oaq-vote-btn--active {
   background: var(--danger-bg);
   color: var(--danger);
 }
@@ -399,6 +398,41 @@
   align-items: flex-start;
   gap: 10px;
   margin-bottom: 6px;
+}
+
+.oaq-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.oaq-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.oaq-badge--stale {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fcd34d;
+}
+
+[data-theme="dark"] .oaq-badge--stale {
+  background: rgba(217,119,6,0.15);
+  color: #fbbf24;
+  border-color: rgba(217,119,6,0.3);
+}
+
+.oaq-card--stale {
+  border-color: #fcd34d !important;
+}
+
+[data-theme="dark"] .oaq-card--stale {
+  border-color: rgba(217,119,6,0.3) !important;
 }
 
 .oaq-card__question {
@@ -480,6 +514,8 @@
   border-radius: 6px;
   margin-bottom: 6px;
 }
+
+
 
 .oaq-card__score {
   color: #2563eb;
@@ -628,6 +664,10 @@
 .oaq-report-btn:hover {
   color: var(--danger);
   background: rgba(248, 113, 113, 0.08);
+}
+
+[data-theme="dark"] .oaq-report-btn:hover {
+  background: rgba(248, 113, 113, 0.15);
 }
 
 .oaq-report-btn--sm {

@@ -57,6 +57,7 @@ router.get('/', auth, admin, async (req, res) => {
     const reports = await Report.find(filter)
       .populate('reportedBy', 'name email')
       .populate('resolvedBy', 'name')
+      .populate('oaqId', 'question title answers')
       .sort({ createdAt: -1 });
     res.json(reports);
   } catch (err) {
@@ -77,7 +78,8 @@ router.put('/:id/resolve', auth, admin, async (req, res) => {
       resolvedAt: new Date(),
     }, { new: true })
       .populate('reportedBy', 'name email')
-      .populate('resolvedBy', 'name');
+      .populate('resolvedBy', 'name')
+      .populate('oaqId', 'question title answers');
     if (!report) return res.status(404).json({ error: 'Report not found' });
     res.json(report);
   } catch (err) {

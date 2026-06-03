@@ -134,7 +134,7 @@
 }
 
 /* ── Collapsible answer area ── */
-.faq-item__content {
+.faq-item__answer {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
@@ -142,13 +142,13 @@
 }
 
 /* Open: set a large enough max-height so the answer text fits; opacity 1 */
-.faq-item--open .faq-item__content {
+.faq-item--open .faq-item__answer {
   max-height: 600px;
   opacity: 1;
 }
 
-/* ── Answer list ── */
-.faq-item__answer {
+/* ── Answer inner content ── */
+.faq-item__answer-inner {
   list-style: none;
   margin: 0;
   padding: 0 18px 16px 18px;
@@ -157,14 +157,14 @@
   font-size: 0.9rem;
 }
 
-.faq-item__answer li {
+.faq-item__answer-inner p {
   position: relative;
   padding-left: 16px;
   margin-bottom: 6px;
 }
 
 /* Bullet dot before each sentence */
-.faq-item__answer li::before {
+.faq-item__answer-inner p::before {
   content: '';
   position: absolute;
   left: 0;
@@ -176,7 +176,7 @@
   flex-shrink: 0;
 }
 
-.faq-item__answer li:last-child {
+.faq-item__answer-inner p:last-child {
   margin-bottom: 0;
 }
 
@@ -186,11 +186,11 @@
     padding: 12px 14px;
     font-size: 0.85rem;
   }
-  .faq-item__answer {
+  .faq-item__answer-inner {
     padding: 0 14px 14px 14px;
     font-size: 0.85rem;
   }
-  .faq-item__answer li {
+  .faq-item__answer-inner p {
     padding-left: 14px;
   }
 }
@@ -224,6 +224,6 @@
 }
 
 /* Bullet colour */
-[data-theme="dark"] .faq-item__answer li::before {
+[data-theme="dark"] .faq-item__answer-inner p::before {
   background: #6366f1;
 }

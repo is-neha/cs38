@@ -6,6 +6,7 @@ const questionSchema = new mongoose.Schema({
   source: { type: String, enum: ['official', 'community'], default: 'official' },
   resolved: { type: Boolean, default: true },
   views: { type: Number, default: 0 },
+  viewedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 });
 
 const categorySchema = new mongoose.Schema({

@@ -2,12 +2,12 @@
  * App.css — Global styles for the application.
  *
  * Contents:
- * - .app base layout for the root component
- * - Autocomplete/autocorrect dropdown styles used by AutocorrectInput
- * (positioned absolutely below the search input, with item hover/
- * active states and a type indicator icon)
- * - Dark mode is handled via [data-theme="dark"] on <html>, using CSS
- * custom properties defined elsewhere (--bg-card, --border, etc.)
+ *   - .app base layout for the root component
+ *   - Autocomplete/autocorrect dropdown styles used by AutocorrectInput
+ *     (positioned absolutely below the search input, with item hover/
+ *     active states and a type indicator icon)
+ *   - Dark mode is handled via [data-theme="dark"] on <html>, using CSS
+ *     custom properties defined elsewhere (--bg-card, --border, etc.)
  *
  * Note: The autocomplete styles live here because they are applied
  * outside of FAQPage's component tree (portal-like positioning) and
@@ -33,7 +33,8 @@
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 9999;
+  /* Increased z-index so dropdown sits above animated/transforming cards */
+  z-index: 110000;
   margin: 0;
   padding: 4px 0;
   list-style: none;
@@ -44,6 +45,8 @@
   max-height: 240px;
   overflow-y: auto;
   text-align: left;
+  /* Ensure the dropdown receives pointer events even if other layers have transforms */
+  pointer-events: auto;
 }
 
 /* Each suggestion row */
@@ -57,6 +60,7 @@
   color: var(--text-primary);
   transition: background 0.12s;
   text-align: left;
+  pointer-events: auto;
 }
 
 /* Hover and keyboard-active highlight */
@@ -69,4 +73,17 @@
 .autocorrect-type {
   flex-shrink: 0;
   font-size: 1rem;
+}
+
+/* ============================================================
+   HIDE LEGACY STATIC SUGGESTION UI
+   ============================================================ */
+/* The repository contains an older static HTML snapshot that renders
+   an element with id="faq-suggest" / class="faq-suggest". Hide it
+   so only the React AutocorrectInput dropdown is visible.
+*/
+#faq-suggest,
+.faq-suggest {
+  display: none !important;
+  pointer-events: none !important;
 }

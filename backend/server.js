@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const Groq = require('groq-sdk');
 const FAQ = require('./models/FAQ');
 const OAQ = require('./models/OAQ');
+const User = require('./models/User');
 const authRoutes = require('./routes/auth');
 const oaqRoutes = require('./routes/oaq');
 const notificationRoutes = require('./routes/notifications');
@@ -35,13 +36,14 @@ async function ensureIndexes() {
 let faqCache = null;
 let faqCacheTime = 0;
 const FAQ_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/faq-app';
+const MONGO_URI = process.env.MONGO_URI;
 
 function connectDB(retrying) {
-  mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000 })
-    .then(() => {
+  mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000, bufferCommands: false })
+    .then(async () => {
       console.log('Connected to MongoDB' + (retrying ? ' (retry)' : ''));
       if (!retrying) ensureIndexes();
+      await batchScoreUnscored();
     })
     .catch(err => {
       console.error('MongoDB connection error:', err.message);
@@ -180,11 +182,29 @@ app.get('/api/faqs/search', async (req, res) => {
 /* ── Increment FAQ question view ── */
 app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
   try {
-    await FAQ.findOneAndUpdate(
-      { _id: req.params.catId, 'questions._id': req.params.qId },
-      { $inc: { 'questions.$.views': 1 } },
-    );
-    res.json({ ok: true });
+    const { userId } = req.body;
+    let views;
+    if (userId) {
+      const cat = await FAQ.findOne({ _id: req.params.catId, 'questions._id': req.params.qId });
+      if (cat) {
+        const q = cat.questions.id(req.params.qId);
+        const viewedBy = q?.viewedBy || [];
+        if (q && !viewedBy.some(id => id.toString() === userId)) {
+          q.viewedBy.push(userId);
+          q.views = (q.views || 0) + 1;
+          await cat.save();
+        }
+        views = cat.questions.id(req.params.qId)?.views || 0;
+      }
+    } else {
+      const updated = await FAQ.findOneAndUpdate(
+        { _id: req.params.catId, 'questions._id': req.params.qId },
+        { $inc: { 'questions.$.views': 1 } },
+        { new: true, projection: { 'questions.$': 1 } },
+      );
+      views = updated?.questions?.[0]?.views || 0;
+    }
+    res.json({ views });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -260,33 +280,39 @@ app.get('/api/search/suggest', async (req, res) => {
     if (!query || query.length < 2) return res.json([]);
 
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    /* Prefix match for speed: finds questions starting with any word in the query */
+    const words = escaped.split(/\s+/).filter(Boolean);
+    const prefixRegex = words.map(w => new RegExp('\\b' + w, 'i'));
+
     const allQas = await FAQ.aggregate([
       { $unwind: '$questions' },
-      { $project: { _id: 0, cat: '$category', q: '$questions.q', a: '$questions.a' } },
+      {
+        $match: {
+          $or: prefixRegex.map(r => ({ 'questions.q': { $regex: r } })),
+        },
+      },
+      { $project: { _id: 0, cat: '$category', q: '$questions.q' } },
+      { $limit: 30 },
     ]);
 
-    const oaqs = await OAQ.find({ status: { $ne: 'rejected' } }).select('question').lean();
+    const oaqs = await OAQ.find(
+      { $or: prefixRegex.map(r => ({ question: { $regex: r } })), status: { $ne: 'rejected' } },
+    ).select('question').limit(20).lean();
 
+    const seen = new Set();
     const suggestions = [];
 
     for (const item of allQas) {
-      if (item.q.toLowerCase().includes(escaped)) suggestions.push({ text: item.q, type: 'FAQ', cat: item.cat });
-      else if (item.a.toLowerCase().includes(escaped)) suggestions.push({ text: item.a.slice(0, 80), type: 'FAQ', cat: item.cat });
+      const key = item.q.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); suggestions.push({ text: item.q, type: 'FAQ', cat: item.cat }); }
     }
-
     for (const item of oaqs) {
-      if (item.question.toLowerCase().includes(escaped)) suggestions.push({ text: item.question, type: 'OAQ' });
+      const key = item.question.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); suggestions.push({ text: item.question, type: 'OAQ' }); }
     }
 
-    const seen = new Set();
-    const unique = suggestions.filter(s => {
-      const key = s.text.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    res.json(unique.slice(0, 8));
+    res.json(suggestions.slice(0, 8));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -524,79 +550,85 @@ Reply ONLY with JSON: { "isDuplicate": true/false, "reason": "brief explanation"
 /* ── Leaderboard ── */
 app.get('/api/leaderboard', async (req, res) => {
   try {
-    const oaqs = await OAQ.find({ status: { $ne: 'rejected' } })
-      .populate('submittedBy', 'name email')
-      .lean({ virtuals: true });
+    const users = await User.find({ points: { $gt: 0 } }, 'name email points')
+      .sort({ points: -1 })
+      .lean();
 
-    const userMap = {};
-
-    for (const oaq of oaqs) {
-      const uid = oaq.submittedBy?._id?.toString();
-      if (!uid) continue;
-      if (!userMap[uid]) {
-        userMap[uid] = {
-          _id: uid,
-          name: oaq.submittedBy.name || 'Anonymous',
-          email: oaq.submittedBy.email || '',
-          questionsAsked: 0,
-          answersGiven: 0,
-          upvotesReceived: 0,
-          downvotesReceived: 0,
-          acceptedCount: 0,
-          promotedCount: 0,
-          score: 0,
-        };
-      }
-
-      const u = userMap[uid];
-      u.questionsAsked++;
-      u.upvotesReceived += (oaq.votedUpBy || []).length;
-      u.downvotesReceived += (oaq.votedDownBy || []).length;
-      if (oaq.status === 'promoted') u.promotedCount++;
-
-      for (const ans of oaq.answers) {
-        const ansUid = ans.submittedBy?._id?.toString();
-        if (!ansUid) continue;
-        if (!userMap[ansUid]) {
-          const ansUser = ans.submittedBy || {};
-          userMap[ansUid] = {
-            _id: ansUid,
-            name: ansUser.name || 'Anonymous',
-            email: ansUser.email || '',
-            questionsAsked: 0,
-            answersGiven: 0,
-            upvotesReceived: 0,
-            downvotesReceived: 0,
-            acceptedCount: 0,
-            promotedCount: 0,
-            score: 0,
-          };
-        }
-        const a = userMap[ansUid];
-        a.answersGiven++;
-        a.upvotesReceived += (ans.votedUpBy || []).length;
-        a.downvotesReceived += (ans.votedDownBy || []).length;
-        if (ans.accepted) a.acceptedCount++;
-      }
-    }
-
-    const users = Object.values(userMap);
+    const enriched = [];
     for (const u of users) {
-      u.score =
-        u.questionsAsked * 5 +
-        u.answersGiven * 10 +
-        u.upvotesReceived * 3 +
-        u.downvotesReceived * -2 +
-        u.acceptedCount * 25 +
-        u.promotedCount * 50;
+      const oaqs = await OAQ.find(
+        { status: { $ne: 'rejected' }, $or: [{ submittedBy: u._id }, { 'answers.submittedBy': u._id }] },
+        'submittedBy votes answers',
+      ).lean();
+
+      let questionsAsked = 0, answersGiven = 0, acceptedCount = 0, promotedCount = 0;
+      for (const oaq of oaqs) {
+        if (oaq.submittedBy?.toString() === u._id.toString()) {
+          questionsAsked++;
+          if (oaq.status === 'promoted') promotedCount++;
+        }
+        for (const ans of oaq.answers) {
+          if (ans.submittedBy?.toString() === u._id.toString()) {
+            answersGiven++;
+            if (ans.accepted) acceptedCount++;
+          }
+        }
+      }
+
+      enriched.push({
+        _id: u._id,
+        name: u.name || 'Anonymous',
+        email: u.email || '',
+        questionsAsked,
+        answersGiven,
+        acceptedCount,
+        promotedCount,
+        score: u.points || 0,
+      });
     }
 
-    users.sort((a, b) => b.score - a.score);
-    res.json(users);
+    enriched.sort((a, b) => b.score - a.score);
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+/* ── Batch-score unscored questions on startup ── */
+async function batchScoreUnscored() {
+  if (!groqApiKey) { console.log('[batchScore] No GROQ_API_KEY, skipping'); return; }
+  try {
+    const unscored = await OAQ.find({ $or: [{ importanceScore: { $exists: false } }, { importanceScore: 0 }] });
+    console.log(`[batchScore] Found ${unscored.length} unscored questions`);
+    if (unscored.length === 0) return;
+    console.log(`Scoring ${unscored.length} existing question(s)…`);
+    const GroqLib = require('groq-sdk');
+    for (const oaq of unscored) {
+      try {
+        const groq = new GroqLib({ apiKey: groqApiKey });
+        const completion = await groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: 'You are a scoring engine. Rate this question 0-100 based on: specificity (is it detailed?), effort (does it show research?), usefulness (would it help many people?), and clarity (is it well-formed?). Low-effort/gibberish = 0-20. Simple factual lookups = 21-40. Moderate well-formed = 41-60. Specific/detailed = 61-80. Highly valuable/insightful = 81-100. Return ONLY a single integer.' },
+            { role: 'user', content: oaq.question },
+          ],
+          temperature: 0.1,
+          max_tokens: 10,
+        });
+        const raw = completion.choices?.[0]?.message?.content?.trim();
+        const match = raw?.match(/\d+/);
+        const score = match ? parseInt(match[0], 10) : NaN;
+        const finalScore = isNaN(score) ? 50 : Math.max(0, Math.min(100, score));
+        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: finalScore });
+      } catch {
+        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: 50 });
+      }
+    }
+    console.log('Existing questions scored.');
+  } catch (err) {
+    console.error('batchScoreUnscored error:', err.message);
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`FAQ API server running on http://localhost:${PORT}`);

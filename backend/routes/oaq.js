@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Groq = require('groq-sdk');
 const OAQ = require('../models/OAQ');
 const FAQ = require('../models/FAQ');
+const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { auth } = require('../middleware/auth');
 const { admin } = require('../middleware/admin');
@@ -10,33 +11,75 @@ const { admin } = require('../middleware/admin');
 const router = express.Router();
 const groqApiKey = process.env.GROQ_API_KEY;
 
+async function awardPoints(userId, points) {
+  if (!userId) return;
+  await User.findByIdAndUpdate(userId, { $inc: { points } });
+}
+
+/* ── AI importance scorer ── */
+async function scoreImportance(questionText) {
+  if (!groqApiKey || !questionText) return 50;
+  try {
+    const groq = new Groq({ apiKey: groqApiKey });
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: 'You are a scoring engine. Rate this question 0-100 based on: specificity (is it detailed?), effort (does it show research?), usefulness (would it help many people?), and clarity (is it well-formed?). Low-effort/gibberish = 0-20. Simple factual lookups = 21-40. Moderate well-formed = 41-60. Specific/detailed = 61-80. Highly valuable/insightful = 81-100. Return ONLY a single integer.' },
+        { role: 'user', content: questionText },
+      ],
+      temperature: 0.1,
+      max_tokens: 10,
+    });
+    const raw = completion.choices?.[0]?.message?.content?.trim();
+    const match = raw?.match(/\d+/);
+    const score = match ? parseInt(match[0], 10) : NaN;
+    return isNaN(score) ? 50 : Math.max(0, Math.min(100, score));
+  } catch {
+    return 50;
+  }
+}
+
 /* ── List OAQs ── */
 router.get('/', async (req, res) => {
   try {
-    const { status, sort } = req.query;
-    let filter = {};
-    
-    // Kept the advanced filtering from HEAD
+    const { status, hasAnswers } = req.query;
+    const filter = {};
     if (status && ['open', 'approved', 'promoted', 'rejected'].includes(status)) {
       filter.status = status;
-    } else {
-      filter.$and = [
-        { status: { $ne: 'rejected' } },
-        { $or: [
-          { status: { $in: ['approved', 'promoted'] } },
-          { status: 'open', 'answers.answeredByAdmin': true },
-        ]}
-      ];
+    } else if (!status) {
+      filter.status = { $ne: 'rejected' };
     }
-    
-    let sortOpt = { createdAt: -1 };
-    if (sort === 'votes') sortOpt = { createdAt: -1 };
-    if (sort === 'trending') sortOpt = { createdAt: -1 };
-    
-    const oaqs = await OAQ.find(filter)
+    if (hasAnswers === 'false') {
+      filter['answers.0'] = { $exists: false };
+    }
+    if (hasAnswers === 'true') {
+      filter['answers.0'] = { $exists: true };
+    }
+    let oaqs = await OAQ.find(filter)
       .populate('submittedBy', 'name')
-      .populate('answers.submittedBy', 'name')
-      .sort(sortOpt);
+      .populate('answers.submittedBy', 'name');
+
+    /* Score any unanswered questions that haven't been scored yet */
+    const unscored = oaqs.filter(o => o.status === 'open' && (!o.importanceScore || o.importanceScore === 0));
+    if (unscored.length > 0) {
+      await Promise.all(unscored.map(async o => {
+        const score = await scoreImportance(o.question);
+        await OAQ.findByIdAndUpdate(o._id, { importanceScore: score });
+        o.importanceScore = score;
+      }));
+    }
+
+    const now = new Date();
+    const twentyFourH = 24 * 60 * 60 * 1000;
+
+    oaqs = oaqs.map(o => {
+      const isUnanswered = o.status === 'open' && (!o.answers || o.answers.length === 0);
+      const isStale = isUnanswered && (now - new Date(o.createdAt)) > twentyFourH;
+      return { ...o.toJSON(), isStale };
+    });
+
+    oaqs.sort((a, b) => b.importanceScore - a.importanceScore || new Date(b.createdAt) - new Date(a.createdAt));
+
     res.json(oaqs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -46,8 +89,28 @@ router.get('/', async (req, res) => {
 /* ── Increment OAQ view ── */
 router.post('/:id/view', async (req, res) => {
   try {
-    await OAQ.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
-    res.json({ ok: true });
+    const { userId } = req.body;
+    let views;
+    if (userId) {
+      const oaq = await OAQ.findById(req.params.id);
+      if (oaq) {
+        const viewedBy = oaq.viewedBy || [];
+        if (!viewedBy.some(id => id.toString() === userId)) {
+          oaq.viewedBy.push(userId);
+          oaq.views = (oaq.views || 0) + 1;
+          await oaq.save();
+        }
+        views = oaq.views || 0;
+      }
+    } else {
+      const updated = await OAQ.findByIdAndUpdate(
+        req.params.id,
+        { $inc: { views: 1 } },
+        { new: true, projection: { views: 1 } },
+      );
+      views = updated?.views || 0;
+    }
+    res.json({ views });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -95,14 +158,6 @@ router.post('/', auth, async (req, res) => {
       return matched / allQWords.length;
     };
 
-    /* HEAD: fuzzy char-level score for out-of-scope detection */
-    const fuzzyTerms = words.map(w => new RegExp(w.split('').join('.*'), 'i'));
-    const fuzzyScore = (text) => {
-      const lower = text.toLowerCase();
-      const matches = fuzzyTerms.filter(reg => reg.test(lower));
-      return matches.length / words.length;
-    };
-
     const allDupes = [
       ...faqDupes.flatMap(c =>
         c.questions
@@ -115,20 +170,8 @@ router.post('/', auth, async (req, res) => {
     ].sort((a, b) => b.score - a.score);
     const topDupes = allDupes.slice(0, 1);
 
-    /* HEAD: out-of-scope detection */
-    let outOfScope = false;
-    if (allDupes.length === 0) {
-      const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
-      let bestFuzzy = 0;
-      for (const text of allFaqTexts) {
-        const fs = fuzzyScore(text);
-        if (fs > bestFuzzy) bestFuzzy = fs;
-      }
-      outOfScope = bestFuzzy < 0.2;
-    }
-
     if (topDupes.length > 0 && groqApiKey) {
-      /* INCOMING: Use Groq AI to decide if it's truly a duplicate */
+      /* Use Groq AI to decide if it's truly a duplicate */
       const groq = new Groq({ apiKey: groqApiKey });
       const dup = topDupes[0];
       const prompt = `You are comparing two questions to decide if they are asking the same thing.
@@ -148,7 +191,6 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
         response_format: { type: 'json_object' },
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-      
       if (result.isDuplicate) {
         /* Notify original asker if duplicate is an OAQ */
         if (dup.source === 'OAQ' && dup.id) {
@@ -163,11 +205,11 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
             });
           }
         }
-        return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '', outOfScope });
+        return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '' });
       }
     } else if (topDupes.length > 0) {
       /* No Groq key — fall back to word-overlap blocking */
-      return res.status(409).json({ duplicates: topDupes, outOfScope });
+      return res.status(409).json({ duplicates: topDupes });
     }
 
     const oaq = await OAQ.create({
@@ -176,9 +218,14 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
       category: category?.trim() || '',
       submittedBy: req.user._id,
     });
+    /* Score importance via AI (non-blocking) */
+    scoreImportance(question.trim()).then(score => {
+      OAQ.findByIdAndUpdate(oaq._id, { importanceScore: score }).catch(() => {});
+    });
     await oaq.populate('submittedBy', 'name');
+    awardPoints(req.user._id, 5);
 
-    /* INCOMING: Similarity-frequency auto-promote */
+    /* ── Similarity-frequency auto-promote ── */
     const similarOpen = await OAQ.find({
       _id: { $ne: oaq._id },
       question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
@@ -233,6 +280,7 @@ Reply ONLY with JSON: { "sameTopic": true/false }`,
         await targetCat.save();
 
         await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } });
+        if (best.submittedBy) awardPoints(best.submittedBy, 50);
 
         if (best.submittedBy) {
           await Notification.create({
@@ -269,8 +317,6 @@ router.post('/:id/answers', auth, async (req, res) => {
     if (oaq.status === 'promoted' || oaq.status === 'rejected') {
       return res.status(400).json({ error: 'Cannot answer a promoted or rejected question' });
     }
-    
-    /* HEAD: Validations */
     if (oaq.status === 'approved' && req.user.role !== 'admin') {
       return res.status(400).json({ error: 'This question is closed for new answers' });
     }
@@ -278,9 +324,9 @@ router.post('/:id/answers', auth, async (req, res) => {
       return res.status(400).json({ error: 'You cannot answer your own question' });
     }
 
-    /* HEAD: Add answer with admin tracking */
     oaq.answers.push({ text: text.trim(), submittedBy: req.user._id, answeredByAdmin: req.user.role === 'admin' });
     await oaq.save();
+    awardPoints(req.user._id, 10);
 
     if (oaq.submittedBy.toString() !== req.user._id.toString()) {
       await Notification.create({
@@ -291,7 +337,7 @@ router.post('/:id/answers', auth, async (req, res) => {
       });
     }
 
-    /* INCOMING: Notify other answerers about the follow-up */
+    /* Notify other answerers about the follow-up */
     const answererIds = [...new Set(
       oaq.answers
         .filter(a => a.submittedBy.toString() !== req.user._id.toString())
@@ -349,6 +395,15 @@ router.post('/:id/vote', auth, async (req, res) => {
 
     await oaq.save();
 
+    const wasUpvoted = value === 1 && !alreadyUp;
+    const wasDownvoted = value === -1 && !alreadyDown;
+    if (wasUpvoted && oaq.submittedBy.toString() !== userId.toString()) {
+      awardPoints(oaq.submittedBy, 3);
+    }
+    if (wasDownvoted && oaq.submittedBy.toString() !== userId.toString()) {
+      awardPoints(oaq.submittedBy, -2);
+    }
+
     /* ── Auto-promote ── */
     const netVotes = (oaq.votedUpBy || []).length - (oaq.votedDownBy || []).length;
     if (netVotes >= 10 && oaq.status === 'approved') {
@@ -367,6 +422,7 @@ router.post('/:id/vote', auth, async (req, res) => {
       oaq.status = 'promoted';
       oaq.promotedCount = (oaq.promotedCount || 0) + 1;
       await oaq.save();
+      awardPoints(oaq.submittedBy, 50);
 
       await Notification.create({
         user: oaq.submittedBy,
@@ -418,6 +474,15 @@ router.post('/:id/answers/:answerId/vote', auth, async (req, res) => {
     }
 
     await oaq.save();
+
+    const answerUpvoted = value === 1 && !alreadyUp;
+    const answerDownvoted = value === -1 && !alreadyDown;
+    if (answerUpvoted && answer.submittedBy && answer.submittedBy.toString() !== userId.toString()) {
+      awardPoints(answer.submittedBy, 3);
+    }
+    if (answerDownvoted && answer.submittedBy && answer.submittedBy.toString() !== userId.toString()) {
+      awardPoints(answer.submittedBy, -2);
+    }
 
     const updated = await OAQ.findById(oaq._id)
       .populate('submittedBy', 'name')
@@ -477,11 +542,8 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     if (!oaq) return res.status(404).json({ error: 'Not found' });
 
     const acceptedAnswer = oaq.answers.find(a => a.accepted);
-    const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
-    
-    /* HEAD: Mark as verified by admin */
+    const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
     if (bestAnswer) bestAnswer.verifiedByAdmin = true;
-    
     const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
     const catName = oaq.category || 'Community Questions';
@@ -501,6 +563,7 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     oaq.status = 'promoted';
     oaq.promotedCount = (oaq.promotedCount || 0) + 1;
     await oaq.save();
+    awardPoints(oaq.submittedBy._id, 50);
 
     await Notification.create({
       user: oaq.submittedBy._id,
@@ -541,6 +604,9 @@ router.put('/:id/answers/:answerId/accept', auth, admin, async (req, res) => {
     const oaq = await OAQ.findById(req.params.id);
     if (!oaq) return res.status(404).json({ error: 'Not found' });
 
+    const hasAdminAnswer = oaq.answers.some(a => a.answeredByAdmin);
+    if (hasAdminAnswer) return res.status(400).json({ error: 'Cannot accept answers after admin has answered' });
+
     const answer = oaq.answers.id(req.params.answerId);
     if (!answer) return res.status(404).json({ error: 'Answer not found' });
 
@@ -548,6 +614,7 @@ router.put('/:id/answers/:answerId/accept', auth, admin, async (req, res) => {
     await oaq.save();
 
     if (answer.accepted && answer.submittedBy) {
+      awardPoints(answer.submittedBy, 25);
       await Notification.create({
         user: answer.submittedBy,
         type: 'accepted',

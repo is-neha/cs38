@@ -72,7 +72,7 @@
 }
 
 .category-tab__count {
-  background: #e2e8f0;
+  background: var(--bg-muted);
   color: var(--text-muted);
   padding: 2px 8px;
   border-radius: 6px;

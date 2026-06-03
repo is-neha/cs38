@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const FAQ = require('../models/FAQ');
 
@@ -182,7 +183,7 @@ const seedData = [
 
 async function seed() {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/faq-app');
+    await mongoose.connect(process.env.MONGO_URI);
     await FAQ.deleteMany({});
     await FAQ.insertMany(seedData);
     console.log('Database seeded successfully');

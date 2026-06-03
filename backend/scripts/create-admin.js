@@ -1,8 +1,9 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
 async function createAdmin() {
-  const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/faq-app';
+  const MONGO_URI = process.env.MONGO_URI;
   const name = process.argv[2] || 'Admin';
   const email = process.argv[3] || 'admin@faq.com';
   const password = process.argv[4] || 'admin123';
