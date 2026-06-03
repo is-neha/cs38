@@ -626,6 +626,7 @@ async function batchScoreUnscored() {
     });
     if (unscored.length === 0) return;
     console.log(`[batchScore] Scoring ${unscored.length} existing question(s)…`);
+    for (const o of unscored) console.log(`  - [${o._id}] "${o.question}" (created: ${o.createdAt})`);
     const GroqLib = require('groq-sdk');
     for (const oaq of unscored) {
       try {
@@ -643,7 +644,8 @@ async function batchScoreUnscored() {
         const match = raw?.match(/\d+/);
         const score = match ? parseInt(match[0], 10) : NaN;
         const finalScore = isNaN(score) ? 50 : Math.max(0, Math.min(100, score));
-        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: finalScore });
+        const updated = await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: finalScore }, { new: true }).lean();
+        console.log(`  ✓ scored [${oaq._id}] → ${finalScore}, verified: ${updated?.importanceScore}`);
       } catch {
         await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: 50 });
       }
