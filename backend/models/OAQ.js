@@ -28,7 +28,7 @@ const oaqSchema = new mongoose.Schema({
   answers: [answerSchema],
   status: { type: String, enum: ['open', 'approved', 'promoted', 'rejected'], default: 'open' },
   promotedCount: { type: Number, default: 0 },
-  importanceScore: { type: Number, default: 0 },
+  importanceScore: { type: Number },
 }, { timestamps: true });
 
 oaqSchema.virtual('upvotes').get(function() { return (this.votedUpBy || []).length; });
