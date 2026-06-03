@@ -50,13 +50,6 @@ function Navbar() {
 
         <div className={`navbar-links${menuOpen ? ' active' : ''}`}>
           <Link to="/faq" className="navbar-link" onClick={closeMenu}>FAQ</Link>
-          {user && user.role !== 'admin' && (
-            <>
-              <Link to="/community" className="navbar-link" onClick={closeMenu}>Community</Link>
-              <Link to="/leaderboard" className="navbar-link" onClick={closeMenu}>Leaderboard</Link>
-              <Link to="/dashboard" className="navbar-link" onClick={closeMenu}>Dashboard</Link>
-            </>
-          )}
           {user?.role === 'admin' && (
             <Link to="/admin" className="navbar-link" onClick={closeMenu}>Admin</Link>
           )}
