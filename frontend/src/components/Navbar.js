@@ -45,10 +45,10 @@ function Navbar() {
             </svg>
             <span>FAQ Portal</span>
           </Link>
-          <Link to={user ? "/home" : "/"} className="navbar-brand-home" onClick={closeMenu}>Home</Link>
         </div>
 
         <div className={`navbar-links${menuOpen ? ' active' : ''}`}>
+          <Link to={user ? "/home" : "/"} className="navbar-link" onClick={closeMenu}>Home</Link>
           <Link to="/faq" className="navbar-link" onClick={closeMenu}>FAQ</Link>
           {location.pathname !== '/faq' && user && user.role !== 'admin' && (
             <>
