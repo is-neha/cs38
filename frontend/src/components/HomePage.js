@@ -246,6 +246,7 @@ function HomePage() {
                       catId={item._catId}
                       qId={item._id}
                       views={item.views}
+                      userId={user?._id}
                       onView={() => handleView(item._catId, item._id)}
                     />
                   ) : (
@@ -372,6 +373,7 @@ function HomePage() {
                         views={item.views || 0}
                         catId={selectedCat._id}
                         qId={item._id}
+                        userId={user?._id}
                         isOpen={!!catOpenItems[item._id]}
                         onToggle={() => setCatOpenItems(prev => ({ ...prev, [item._id]: !prev[item._id] }))}
                         onView={() => {
