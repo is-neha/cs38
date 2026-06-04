@@ -14,7 +14,7 @@ const groqApiKey = process.env.GROQ_API_KEY;
 async function awardPoints(userId, points) {
   if (!userId) return;
   try {
-    await User.findByIdAndUpdate(userId, { $inc: { points } });
+    await User.findByIdAndUpdate(userId, { $inc: { points } }, { returnDocument: 'after' });
   } catch {
     // Ignore points update failures so they don't crash request handlers
   }
@@ -232,7 +232,7 @@ Reply with ONLY a JSON object:
     });
     /* Score importance via AI (non-blocking) */
     scoreImportance(question.trim()).then(score => {
-      OAQ.findByIdAndUpdate(oaq._id, { importanceScore: score }).catch(() => {});
+      OAQ.findByIdAndUpdate(oaq._id, { importanceScore: score }, { returnDocument: 'after' }).catch(() => {});
     });
     await oaq.populate('submittedBy', 'name');
     awardPoints(req.user._id, 5);
@@ -293,7 +293,7 @@ Reply with ONLY a JSON object:
           targetCat.questions.push({ q: best.question, a: bestAnswer.text, source: 'community', resolved: true });
           await targetCat.save();
 
-          await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } });
+          await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } }, { returnDocument: 'after' });
           if (best.submittedBy) awardPoints(best.submittedBy, 50);
 
           if (best.submittedBy) {

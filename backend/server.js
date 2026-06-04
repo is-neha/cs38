@@ -676,9 +676,9 @@ async function batchScoreUnscored() {
         const match = raw?.match(/\d+/);
         const score = match ? parseInt(match[0], 10) : NaN;
         const finalScore = isNaN(score) ? 50 : Math.max(0, Math.min(100, score));
-        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: finalScore });
+        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: finalScore }, { returnDocument: 'after' });
       } catch {
-        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: 50 });
+        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: 50 }, { returnDocument: 'after' });
       }
     }
     console.log('Existing questions scored.');
