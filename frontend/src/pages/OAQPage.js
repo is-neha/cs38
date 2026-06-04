@@ -48,6 +48,10 @@ function OAQPage() {
   // ----- View tracking with ref to prevent repeated increments -----
   const viewedOaqsRef = useRef(new Set());
 
+  useEffect(() => {
+    viewedOaqsRef.current = new Set();
+  }, [user?._id]);
+
   // ----- Fetch all OAQs -----
   const fetchOaqs = useCallback(() => {
     setLoading(true);

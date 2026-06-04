@@ -238,80 +238,83 @@ Reply with ONLY a JSON object:
     awardPoints(req.user._id, 5);
 
     /* ── Similarity-frequency auto-promote ── */
-    const q = question.toLowerCase().trim();
-    const words = q.split(/\s+/).filter(w => w.length > 2);
-    const similarOpen = await OAQ.find({
-      _id: { $ne: oaq._id },
-      question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
-      status: { $in: ['open', 'approved'] },
-      answers: { $exists: true, $not: { $size: 0 } },
-    }).lean({ virtuals: true });
+    try {
+      const q = question.toLowerCase().trim();
+      const words = q.split(/\s+/).filter(w => w.length > 2);
+      const similarOpen = await OAQ.find({
+        _id: { $ne: oaq._id },
+        question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
+        status: { $in: ['open', 'approved'] },
+        answers: { $exists: true, $not: { $size: 0 } },
+      }).lean({ virtuals: true });
 
-    let scored = similarOpen
-      .map(o => ({
-        ...o,
-        _score: score(o.question),
-      }))
-      .filter(o => o._score > 0.4)
-      .sort((a, b) => b._score - a._score);
+      let scored = similarOpen
+        .map(o => ({
+          ...o,
+          _score: (o.question.toLowerCase().split(/\s+/).filter(w => words.includes(w)).length / Math.max(words.length, 1)),
+        }))
+        .filter(o => o._score > 0.4)
+        .sort((a, b) => b._score - a._score);
 
-    if (scored.length >= 1 && groqApiKey) {
-      /* Validate similarity with Groq AI before promoting */
-      const groq = new Groq({ apiKey: groqApiKey });
-      for (const candidate of scored) {
-        const completion = await groq.chat.completions.create({
-          messages: [{
-            role: 'user',
-            content: `Are these two questions asking about the same topic? Consider them the same if one asks what the other asks, even with different wording or minor typos.
-Question 1: "${candidate.question}"
-Question 2: "${question.trim()}"
-Reply ONLY with JSON: { "sameTopic": true/false }`,
-          }],
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.1,
-          response_format: { type: 'json_object' },
-        });
-        const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-        if (result.sameTopic) {
-          scored = [candidate];
-          break;
+      if (scored.length >= 1 && groqApiKey) {
+        const groq = new Groq({ apiKey: groqApiKey });
+        for (const candidate of scored) {
+          const completion = await groq.chat.completions.create({
+            messages: [{
+              role: 'user',
+              content: `Are these two questions asking about the same topic? Consider them the same if one asks what the other asks, even with different wording or minor typos.
+  Question 1: "${candidate.question}"
+  Question 2: "${question.trim()}"
+  Reply ONLY with JSON: { "sameTopic": true/false }`,
+            }],
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.1,
+            response_format: { type: 'json_object' },
+          });
+          const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+          if (result.sameTopic) {
+            scored = [candidate];
+            break;
+          }
         }
+        if (scored.length > 1) scored = [];
       }
-      if (scored.length > 1) scored = [];
-    }
 
-    if (scored.length >= 1) {
-      const best = scored[0];
-      const bestAnswer = best.answers.find(a => a.accepted) ||
-        [...best.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
-      if (bestAnswer) {
-        const catName = best.category || 'Community Questions';
-        let targetCat = await FAQ.findOne({ category: catName });
-        if (!targetCat) {
-          targetCat = await FAQ.create({ category: catName, icon: '🌐', questions: [] });
-        }
-        targetCat.questions.push({ q: best.question, a: bestAnswer.text, source: 'community', resolved: true });
-        await targetCat.save();
+      if (scored.length >= 1) {
+        const best = scored[0];
+        const bestAnswer = best.answers.find(a => a.accepted) ||
+          [...best.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
+        if (bestAnswer) {
+          const catName = best.category || 'Community Questions';
+          let targetCat = await FAQ.findOne({ category: catName });
+          if (!targetCat) {
+            targetCat = await FAQ.create({ category: catName, icon: '🌐', questions: [] });
+          }
+          targetCat.questions.push({ q: best.question, a: bestAnswer.text, source: 'community', resolved: true });
+          await targetCat.save();
 
-        await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } });
-        if (best.submittedBy) awardPoints(best.submittedBy, 50);
+          await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } });
+          if (best.submittedBy) awardPoints(best.submittedBy, 50);
 
-        if (best.submittedBy) {
+          if (best.submittedBy) {
+            await Notification.create({
+              user: best.submittedBy,
+              type: 'promoted',
+              message: `Your question was promoted to FAQ (similar questions trend): "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
+              link: '/faq',
+            });
+          }
+
           await Notification.create({
-            user: best.submittedBy,
-            type: 'promoted',
-            message: `Your question was promoted to FAQ (similar questions trend): "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
+            user: oaq.submittedBy._id,
+            type: 'related',
+            message: `A similar question was promoted to FAQ: "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
             link: '/faq',
           });
         }
-
-        await Notification.create({
-          user: oaq.submittedBy._id,
-          type: 'related',
-          message: `A similar question was promoted to FAQ: "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
-          link: '/faq',
-        });
       }
+    } catch (autoPromoteErr) {
+      console.log('[auto-promote] non-critical error:', autoPromoteErr.message);
     }
 
     res.status(201).json(oaq);
@@ -556,7 +559,7 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     if (!oaq) return res.status(404).json({ error: 'Not found' });
 
     const acceptedAnswer = oaq.answers.find(a => a.accepted);
-    const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
+    const bestAnswer = acceptedAnswer || [...oaq.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
     if (bestAnswer) bestAnswer.verifiedByAdmin = true;
     const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
