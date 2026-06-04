@@ -83,7 +83,8 @@ function HomePage() {
             icon: cat.icon,
             category: cat.category,
             _type: 'FAQ',
-            _catId: cat._id
+            _catId: cat._id,
+            views: item.views || 0
           });
         }
       }
@@ -120,7 +121,8 @@ function HomePage() {
     setOpenItems(prev => ({ ...prev, [idx]: prev[idx] === undefined ? 0 : prev[idx] === 0 ? null : 0 }));
   }, []);
 
-  const handleView = useCallback((catId, qId) => {
+  const handleView = useCallback((catId, qId, actualViews) => {
+    if (actualViews === undefined) return;
     setHomeData(prev => {
       if (!prev) return prev;
       const cards = prev.categoryCards?.map(cat => {
@@ -128,7 +130,7 @@ function HomePage() {
         return {
           ...cat,
           questions: cat.questions.map(q =>
-            q._id === qId ? { ...q, views: (q.views || 0) + 1 } : q
+            q._id === qId ? { ...q, views: actualViews } : q
           ),
         };
       });
@@ -261,9 +263,9 @@ function HomePage() {
                       onToggle={() => toggleItem(i)}
                       catId={item._catId}
                       qId={item.qId}
-                      views={item.views}
+                      views={item.views || 0}
                       userId={user?._id}
-                      onView={() => handleView(item._catId, item.qId)}
+                      onView={(actual) => handleView(item._catId, item.qId, actual)}
                     />
                   ) : (
                     <div key={i} className="home-result-oaq" onClick={() => navigate('/community')}>
@@ -392,10 +394,11 @@ function HomePage() {
                         userId={user?._id}
                         isOpen={!!catOpenItems[item._id]}
                         onToggle={() => setCatOpenItems(prev => ({ ...prev, [item._id]: !prev[item._id] }))}
-                        onView={() => {
+                        onView={(actual) => {
+                          if (actual === undefined) return;
                           setSelectedCat(prev => {
                             if (!prev) return prev;
-                            const updated = { ...prev, questions: prev.questions.map(q => q._id === item._id ? { ...q, views: (q.views || 0) + 1 } : q) };
+                            const updated = { ...prev, questions: prev.questions.map(q => q._id === item._id ? { ...q, views: actual } : q) };
                             return updated;
                           });
                         }}

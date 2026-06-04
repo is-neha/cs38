@@ -117,14 +117,10 @@ router.post('/:id/view', async (req, res) => {
   }
 });
 
-/* ── Get single OAQ ── */
+/* ── Get single OAQ (read-only, view counted via POST /:id/view) ── */
 router.get('/:id', async (req, res) => {
   try {
-    const oaq = await OAQ.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { returnDocument: 'after' },
-    )
+    const oaq = await OAQ.findById(req.params.id)
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });

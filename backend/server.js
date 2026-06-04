@@ -218,15 +218,19 @@ app.get('/api/faqs/search', async (req, res) => {
 /* ── Increment FAQ question view ── */
 app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
   try {
+    const { catId, qId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(catId) || !mongoose.Types.ObjectId.isValid(qId)) {
+      return res.json({ views: 0 });
+    }
     const userId = req.user?._id || req.body.userId;
     if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
       return res.json({ views: 0 });
     }
     let views;
     if (userId) {
-      const cat = await FAQ.findOne({ _id: req.params.catId, 'questions._id': req.params.qId });
+      const cat = await FAQ.findOne({ _id: catId, 'questions._id': qId });
       if (cat) {
-        const q = cat.questions.id(req.params.qId);
+        const q = cat.questions.id(qId);
         if (q) {
           q.viewedBy = q.viewedBy || [];
           if (!q.viewedBy.some(id => id.toString() === userId)) {
@@ -237,16 +241,19 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
             faqCache = null;
           }
         }
-        views = cat.questions.id(req.params.qId)?.views || 0;
+        views = cat.questions.id(qId)?.views || 0;
       }
     } else {
-      const updated = await FAQ.findOneAndUpdate(
-        { _id: req.params.catId, 'questions._id': req.params.qId },
-        { $inc: { 'questions.$.views': 1 } },
-        { returnDocument: 'after', projection: { 'questions.$': 1 } },
-      );
-      views = updated?.questions?.[0]?.views || 0;
-      faqCache = null;
+      const cat = await FAQ.findOne({ _id: catId, 'questions._id': qId });
+      if (cat) {
+        const q = cat.questions.id(qId);
+        if (q) {
+          q.views = (q.views || 0) + 1;
+          await cat.save();
+          faqCache = null;
+        }
+        views = cat.questions.id(qId)?.views || 0;
+      }
     }
     res.json({ views });
   } catch (err) {

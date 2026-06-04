@@ -201,18 +201,16 @@ function FAQPage() {
   const isSearching = searchQuery.trim().length >= 2;
 
   // ── View counter ──
-  // Optimistically increments the view count locally so the UI updates
-  // immediately (the actual POST to the API is handled inside FAQItem).
-  const handleView = useCallback((catIdx, qIdx, actualViews) => {
-    if (actualViews !== undefined) {
-      setFaqData(prev => prev.map((cat, i) =>
-        i === catIdx ? {
-          ...cat, questions: cat.questions.map((q, j) =>
-            j === qIdx ? { ...q, views: actualViews } : q
-          )
-        } : cat
-      ));
-    }
+  // Updates the view count from the server response (sent via FAQItem)
+  const handleView = useCallback((catId, qId, actualViews) => {
+    if (actualViews === undefined) return;
+    setFaqData(prev => prev.map(cat =>
+      cat._id === catId ? {
+        ...cat, questions: cat.questions.map(q =>
+          q._id === qId ? { ...q, views: actualViews } : q
+        )
+      } : cat
+    ));
   }, []);
 
   // ── Loading skeleton ──
@@ -363,8 +361,8 @@ function FAQPage() {
                       }
                       catId={category._id}
                       qId={item._id}
-                      views={item.views}
-                      onView={(actual) => handleView(catIdx, qIdx, actual)}
+                      views={item.views || 0}
+                      onView={(actual) => handleView(category._id, item._id, actual)}
                       userId={user?._id}
                     />
                   ))}
@@ -397,8 +395,8 @@ function FAQPage() {
                       }
                       catId={category._id}
                       qId={item._id}
-                      views={item.views}
-                      onView={(actual) => handleView(catIdx, qIdx, actual)}
+                      views={item.views || 0}
+                      onView={(actual) => handleView(category._id, item._id, actual)}
                       userId={user?._id}
                     />
                   ))}
