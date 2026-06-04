@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# cs38
-=======
 # FAQ Portal — Vicharanashala Internship
 
 A full-stack Q&A platform with FAQ management, community discussions, admin dashboard, and AI-powered features.

@@ -31,8 +31,14 @@ function ThemeProvider({ children }) {
     });
   };
 
+  const resetTheme = () => {
+    setDark(false);
+    localStorage.setItem('theme', 'light');
+    document.documentElement.setAttribute('data-theme', 'light');
+  };
+
   return (
-    <ThemeContext.Provider value={{ dark, toggle }}>
+    <ThemeContext.Provider value={{ dark, toggle, resetTheme }}>
       {children}
     </ThemeContext.Provider>
   );

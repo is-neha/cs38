@@ -272,7 +272,7 @@ Reply ONLY with JSON: { "sameTopic": true/false }`,
     if (scored.length >= 1) {
       const best = scored[0];
       const bestAnswer = best.answers.find(a => a.accepted) ||
-        best.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
+        [...best.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
       if (bestAnswer) {
         const catName = best.category || 'Community Questions';
         let targetCat = await FAQ.findOne({ category: catName });
@@ -411,7 +411,7 @@ router.post('/:id/vote', auth, async (req, res) => {
     const netVotes = (oaq.votedUpBy || []).length - (oaq.votedDownBy || []).length;
     if (netVotes >= 10 && oaq.status === 'approved') {
       const bestAnswer = oaq.answers.find(a => a.accepted) ||
-        oaq.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
+        [...oaq.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
       const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
       const catName = oaq.category || 'Community Questions';

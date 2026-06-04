@@ -18,9 +18,17 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const groqApiKey = process.env.GROQ_API_KEY;
 
-/* ── Text indexes & search cache ── */
+/* ── Search cache with TTL + max-size eviction ── */
 const searchCache = new Map();
 const SEARCH_CACHE_TTL = 60000;
+const SEARCH_CACHE_MAX = 500;
+function cacheSet(key, value) {
+  if (searchCache.size >= SEARCH_CACHE_MAX) {
+    const oldest = searchCache.keys().next().value;
+    if (oldest !== undefined) searchCache.delete(oldest);
+  }
+  cacheSet(key, value);
+}
 
 async function ensureIndexes() {
   try {
@@ -38,11 +46,13 @@ let faqCacheTime = 0;
 const FAQ_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const MONGO_URI = process.env.MONGO_URI;
 
+let indexesEnsured = false;
+
 function connectDB(retrying) {
   mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000, bufferCommands: false })
     .then(async () => {
       console.log('Connected to MongoDB' + (retrying ? ' (retry)' : ''));
-      if (!retrying) ensureIndexes();
+      if (!indexesEnsured) { ensureIndexes(); indexesEnsured = true; }
       await batchScoreUnscored();
     })
     .catch(err => {
@@ -177,7 +187,7 @@ app.get('/api/faqs/search', async (req, res) => {
     ];
 
     const results = await FAQ.aggregate(pipe);
-    searchCache.set(cacheKey, { data: results, ts: Date.now() });
+    cacheSet(cacheKey, { data: results, ts: Date.now() });
     res.json(results);
   } catch (err) {
     /* Fallback to regex search if $text fails */
@@ -185,12 +195,12 @@ app.get('/api/faqs/search', async (req, res) => {
       const query2 = req.query.q?.toLowerCase() || '';
       const words = query2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).filter(Boolean);
       const faqs = await FAQ.find({
-        $or: words.map(w => ({ 'questions.q': { $regex: w, $options: 'i' } })),
+        $or: words.flatMap(w => [{ 'questions.q': { $regex: w, $options: 'i' } }, { 'questions.a': { $regex: w, $options: 'i' } }]),
       }).lean();
       const results = faqs.map(cat => ({
         ...cat,
         questions: cat.questions.filter(q =>
-          words.every(w => q.q.toLowerCase().includes(w))
+          words.every(w => q.q.toLowerCase().includes(w) || q.a.toLowerCase().includes(w))
         ),
       })).filter(cat => cat.questions.length > 0);
       res.json(results);
@@ -274,7 +284,7 @@ app.get('/api/search/all', async (req, res) => {
     ]);
 
     const result = { faq: faqPipe, oaq: oaqResults };
-    searchCache.set(cacheKey, { data: result, ts: Date.now() });
+    cacheSet(cacheKey, { data: result, ts: Date.now() });
     res.json(result);
   } catch (err) {
     /* Fallback regex search */
