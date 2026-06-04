@@ -13,7 +13,11 @@ const groqApiKey = process.env.GROQ_API_KEY;
 
 async function awardPoints(userId, points) {
   if (!userId) return;
-  await User.findByIdAndUpdate(userId, { $inc: { points } });
+  try {
+    await User.findByIdAndUpdate(userId, { $inc: { points } });
+  } catch {
+    // Ignore points update failures so they don't crash request handlers
+  }
 }
 
 /* ── AI importance scorer ── */
@@ -82,7 +86,10 @@ router.get('/', async (req, res) => {
 /* ── Increment OAQ view ── */
 router.post('/:id/view', async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user?._id || req.body.userId;
+    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.json({ views: 0 });
+    }
     let views;
     if (userId) {
       const oaq = await OAQ.findById(req.params.id);
@@ -90,6 +97,7 @@ router.post('/:id/view', async (req, res) => {
         oaq.viewedBy = oaq.viewedBy || [];
         if (!oaq.viewedBy.some(id => id.toString() === userId)) {
           oaq.viewedBy.push(userId);
+          if (oaq.viewedBy.length > 100) oaq.viewedBy.shift();
           oaq.views = (oaq.views || 0) + 1;
           await oaq.save();
         }

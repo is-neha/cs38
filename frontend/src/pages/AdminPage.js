@@ -25,9 +25,9 @@ function AdminPage() {
   const [aiResult, setAiResult] = useState({});
   const [aiCheck, setAiCheck] = useState({});
   const [aiCheckLoading, setAiCheckLoading] = useState(null);
-const [answeringId, setAnsweringId] = useState(null);
-const [answerText, setAnswerText] = useState('');
-const [expandedId, setExpandedId] = useState(null);
+  const [answeringId, setAnsweringId] = useState(null);
+  const [answerText, setAnswerText] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;

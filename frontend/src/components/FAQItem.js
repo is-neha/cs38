@@ -5,6 +5,10 @@ function FAQItem({ number, question, answer, isOpen, onToggle, catId, qId, views
   const hasRecordedViewRef = useRef(false);
 
   useEffect(() => {
+    hasRecordedViewRef.current = false;
+  }, [userId]);
+
+  useEffect(() => {
     if (isOpen && !hasRecordedViewRef.current) {
       hasRecordedViewRef.current = true;
       fetch(`/api/faqs/${catId}/questions/${qId}/view`, {

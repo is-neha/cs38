@@ -46,6 +46,11 @@ let faqCacheTime = 0;
 const FAQ_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const MONGO_URI = process.env.MONGO_URI;
 
+if (!MONGO_URI) {
+  console.error('FATAL: MONGO_URI environment variable is not set');
+  process.exit(1);
+}
+
 let indexesEnsured = false;
 
 function connectDB(retrying) {
@@ -213,7 +218,10 @@ app.get('/api/faqs/search', async (req, res) => {
 /* ── Increment FAQ question view ── */
 app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user?._id || req.body.userId;
+    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.json({ views: 0 });
+    }
     let views;
     if (userId) {
       const cat = await FAQ.findOne({ _id: req.params.catId, 'questions._id': req.params.qId });
@@ -223,6 +231,7 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
           q.viewedBy = q.viewedBy || [];
           if (!q.viewedBy.some(id => id.toString() === userId)) {
             q.viewedBy.push(userId);
+            if (q.viewedBy.length > 100) q.viewedBy.shift();
             q.views = (q.views || 0) + 1;
             await cat.save();
             faqCache = null;
@@ -598,42 +607,39 @@ Reply with ONLY a JSON object:
 /* ── Leaderboard ── */
 app.get('/api/leaderboard', async (req, res) => {
   try {
-    const users = await User.find({ points: { $gt: 0 } }, 'name email points')
-      .sort({ points: -1 })
-      .lean();
+    const [users, allOaqs] = await Promise.all([
+      User.find({ points: { $gt: 0 } }, 'name email points').sort({ points: -1 }).lean(),
+      OAQ.find({ status: { $ne: 'rejected' } }, 'submittedBy status answers').lean(),
+    ]);
 
-    const enriched = [];
+    const userSets = {};
     for (const u of users) {
-      const oaqs = await OAQ.find(
-        { status: { $ne: 'rejected' }, $or: [{ submittedBy: u._id }, { 'answers.submittedBy': u._id }] },
-        'submittedBy status answers',
-      ).lean();
+      const uid = u._id.toString();
+      userSets[uid] = { questionsAsked: 0, answersGiven: 0, acceptedCount: 0, promotedCount: 0 };
+    }
 
-      let questionsAsked = 0, answersGiven = 0, acceptedCount = 0, promotedCount = 0;
-      for (const oaq of oaqs) {
-        if (oaq.submittedBy?.toString() === u._id.toString()) {
-          questionsAsked++;
-          if (oaq.status === 'promoted') promotedCount++;
-        }
-        for (const ans of oaq.answers) {
-          if (ans.submittedBy?.toString() === u._id.toString()) {
-            answersGiven++;
-            if (ans.accepted) acceptedCount++;
-          }
+    for (const oaq of allOaqs) {
+      const subId = oaq.submittedBy?.toString();
+      if (subId && userSets[subId]) {
+        userSets[subId].questionsAsked++;
+        if (oaq.status === 'promoted') userSets[subId].promotedCount++;
+      }
+      for (const ans of oaq.answers) {
+        const ansId = ans.submittedBy?.toString();
+        if (ansId && userSets[ansId]) {
+          userSets[ansId].answersGiven++;
+          if (ans.accepted) userSets[ansId].acceptedCount++;
         }
       }
-
-      enriched.push({
-        _id: u._id,
-        name: u.name || 'Anonymous',
-        email: u.email || '',
-        questionsAsked,
-        answersGiven,
-        acceptedCount,
-        promotedCount,
-        score: u.points || 0,
-      });
     }
+
+    const enriched = users.map(u => ({
+      _id: u._id,
+      name: u.name || 'Anonymous',
+      email: u.email || '',
+      ...userSets[u._id.toString()],
+      score: u.points || 0,
+    }));
 
     enriched.sort((a, b) => b.score - a.score);
     res.json(enriched);

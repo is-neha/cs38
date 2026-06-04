@@ -52,7 +52,7 @@ function Navbar() {
         <div className={`navbar-links${menuOpen ? ' active' : ''}`}>
           <Link to={user ? "/home" : "/"} className="navbar-link" onClick={closeMenu}>Home</Link>
           <Link to="/faq" className="navbar-link" onClick={closeMenu}>FAQ</Link>
-          {location.pathname !== '/faq' && user && user.role !== 'admin' && (
+          {user && user.role !== 'admin' && (
             <>
               <Link to="/community" className="navbar-link" onClick={closeMenu}>Community</Link>
               <Link to="/leaderboard" className="navbar-link" onClick={closeMenu}>Leaderboard</Link>
@@ -78,7 +78,7 @@ function Navbar() {
               </div>
               <span className={`navbar-role-tag navbar-role-tag--${user.role}`}>{user.role}</span>
               <span className="navbar-points">{user.points || 0} pts</span>
-              <button className="navbar-btn--signout" title="Sign out" onClick={async (e) => { e.stopPropagation(); await logout(); document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); navigate('/'); }}>
+              <button className="navbar-btn--signout" title="Sign out" onClick={async (e) => { e.stopPropagation(); await logout(); resetTheme(); navigate('/'); }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                   <polyline points="16 17 21 12 16 7" />
