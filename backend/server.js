@@ -27,7 +27,7 @@ function cacheSet(key, value) {
     const oldest = searchCache.keys().next().value;
     if (oldest !== undefined) searchCache.delete(oldest);
   }
-  cacheSet(key, value);
+  searchCache.set(key, value);
 }
 
 async function ensureIndexes() {
@@ -219,12 +219,14 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
       const cat = await FAQ.findOne({ _id: req.params.catId, 'questions._id': req.params.qId });
       if (cat) {
         const q = cat.questions.id(req.params.qId);
-        const viewedBy = q?.viewedBy || [];
-        if (q && !viewedBy.some(id => id.toString() === userId)) {
-          q.viewedBy.push(userId);
-          q.views = (q.views || 0) + 1;
-          await cat.save();
-          faqCache = null;
+        if (q) {
+          q.viewedBy = q.viewedBy || [];
+          if (!q.viewedBy.some(id => id.toString() === userId)) {
+            q.viewedBy.push(userId);
+            q.views = (q.views || 0) + 1;
+            await cat.save();
+            faqCache = null;
+          }
         }
         views = cat.questions.id(req.params.qId)?.views || 0;
       }
@@ -526,12 +528,27 @@ app.post('/api/ai/check-duplicate', async (req, res) => {
       })),
     ];
 
+    /* ── Pre‑filter for large question sets ── */
+    let candidates = existingQuestions;
+    const MAX_QUESTIONS = 120;
+    if (candidates.length > MAX_QUESTIONS) {
+      const words = question.toLowerCase().match(/\b\w{4,}\b/g) || [];
+      if (words.length > 0) {
+        candidates = candidates.filter(c =>
+          words.some(w => c.text.toLowerCase().includes(w))
+        );
+      }
+      if (candidates.length === 0 || candidates.length > MAX_QUESTIONS) {
+        candidates = candidates.slice(0, MAX_QUESTIONS);
+      }
+    }
+
     let duplicates = [];
     let outOfScope = false;
 
-    if (groqApiKey && existingQuestions.length > 0) {
+    if (groqApiKey && candidates.length > 0) {
       const groq = new Groq({ apiKey: groqApiKey });
-      const existingFormatted = existingQuestions
+      const existingFormatted = candidates
         .map((item, i) => `[${i}] ${item.text}`)
         .join('\n');
 
@@ -565,7 +582,7 @@ Reply with ONLY a JSON object:
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
       if (result.isDuplicate && result.matchIndex !== null && result.matchIndex !== undefined) {
-        const dup = existingQuestions[result.matchIndex];
+        const dup = candidates[result.matchIndex];
         if (dup) {
           duplicates = [dup];
         }
@@ -589,7 +606,7 @@ app.get('/api/leaderboard', async (req, res) => {
     for (const u of users) {
       const oaqs = await OAQ.find(
         { status: { $ne: 'rejected' }, $or: [{ submittedBy: u._id }, { 'answers.submittedBy': u._id }] },
-        'submittedBy votes answers',
+        'submittedBy status answers',
       ).lean();
 
       let questionsAsked = 0, answersGiven = 0, acceptedCount = 0, promotedCount = 0;

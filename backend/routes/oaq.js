@@ -68,7 +68,10 @@ router.get('/', async (req, res) => {
       return { ...o.toJSON(), isStale };
     });
 
-    oaqs.sort((a, b) => b.importanceScore - a.importanceScore || new Date(b.createdAt) - new Date(a.createdAt));
+    oaqs.sort((a, b) =>
+      ((b.importanceScore ?? 0) - (a.importanceScore ?? 0)) ||
+      (new Date(b.createdAt) - new Date(a.createdAt))
+    );
 
     res.json(oaqs);
   } catch (err) {
@@ -84,8 +87,8 @@ router.post('/:id/view', async (req, res) => {
     if (userId) {
       const oaq = await OAQ.findById(req.params.id);
       if (oaq) {
-        const viewedBy = oaq.viewedBy || [];
-        if (!viewedBy.some(id => id.toString() === userId)) {
+        oaq.viewedBy = oaq.viewedBy || [];
+        if (!oaq.viewedBy.some(id => id.toString() === userId)) {
           oaq.viewedBy.push(userId);
           oaq.views = (oaq.views || 0) + 1;
           await oaq.save();

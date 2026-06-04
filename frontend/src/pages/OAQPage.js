@@ -1,11 +1,10 @@
 /*
  * OAQPage.js — Community Q&A Page
  *
- * Changes: Prevent repeated view increments from the same viewer/browser by
- * persisting a 'viewed' list in localStorage (keyed per viewer_id when
- * available). toggleExpand now records/queries that list and only POSTs to
- * /api/oaq/:id/view and increments the local view count when the viewer has
- * not already viewed the question.
+ * Changes: Prevent repeated view increments within the current page session by
+ * tracking viewed question ids in a ref-backed Set (viewedOaqsRef). toggleExpand
+ * checks that Set and only POSTs to /api/oaq/:id/view the first time a question
+ * is opened during the session.
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -148,8 +147,7 @@ function OAQPage() {
           }
         }).catch(() => {});
       }
-      const oaq = oaqs.find(o => o._id === id);
-      if (oaq) fetchRelated(oaq.question);
+      // Related questions UI removed; skip related-question fetch.
     } else {
       setRelated(null);
     }

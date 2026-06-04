@@ -121,13 +121,20 @@ function HomePage() {
   }, []);
 
   const handleView = useCallback((catId, qId) => {
-    const idx = (searchResults || []).findIndex(
-      i => i._type === 'FAQ' && i._catId === catId && i.qId === qId
-    );
-    if (idx >= 0) {
-      setOpenItems(prev => ({ ...prev, [idx]: prev[idx] === undefined ? 0 : prev[idx] === 0 ? null : 0 }));
-    }
-  }, [searchResults]);
+    setHomeData(prev => {
+      if (!prev) return prev;
+      const cards = prev.categoryCards?.map(cat => {
+        if (cat._id !== catId) return cat;
+        return {
+          ...cat,
+          questions: cat.questions.map(q =>
+            q._id === qId ? { ...q, views: (q.views || 0) + 1 } : q
+          ),
+        };
+      });
+      return { ...prev, categoryCards: cards };
+    });
+  }, []);
 
   const quickFilters = [
     { key: 'all', label: 'All' },
