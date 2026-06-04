@@ -116,4 +116,3 @@ NODE_ENV=development
 | GET | `/api/auth/me` | Current user info |
 | PUT | `/api/users/profile` | Update profile |
 | POST | `/api/admin/ai-check` | AI answer quality check |
->>>>>>> bda541506fe3be453675ab66fd034cae46aa6cb2
