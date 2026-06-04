@@ -76,7 +76,7 @@ router.put('/:id/resolve', auth, admin, async (req, res) => {
       status: action,
       resolvedBy: req.user._id,
       resolvedAt: new Date(),
-    }, { new: true })
+    }, { returnDocument: 'after' })
       .populate('reportedBy', 'name email')
       .populate('resolvedBy', 'name')
       .populate('oaqId', 'question title answers');

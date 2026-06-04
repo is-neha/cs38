@@ -222,7 +222,7 @@ app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
       const updated = await FAQ.findOneAndUpdate(
         { _id: req.params.catId, 'questions._id': req.params.qId },
         { $inc: { 'questions.$.views': 1 } },
-        { new: true, projection: { 'questions.$': 1 } },
+        { returnDocument: 'after', projection: { 'questions.$': 1 } },
       );
       views = updated?.questions?.[0]?.views || 0;
       faqCache = null;

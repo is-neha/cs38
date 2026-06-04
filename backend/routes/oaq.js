@@ -96,7 +96,7 @@ router.post('/:id/view', async (req, res) => {
       const updated = await OAQ.findByIdAndUpdate(
         req.params.id,
         { $inc: { views: 1 } },
-        { new: true, projection: { views: 1 } },
+        { returnDocument: 'after', projection: { views: 1 } },
       );
       views = updated?.views || 0;
     }
@@ -112,7 +112,7 @@ router.get('/:id', async (req, res) => {
     const oaq = await OAQ.findByIdAndUpdate(
       req.params.id,
       { $inc: { views: 1 } },
-      { new: true },
+      { returnDocument: 'after' },
     )
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
@@ -499,7 +499,7 @@ router.post('/:id/answers/:answerId/vote', auth, async (req, res) => {
 /* ── Admin: approve ── */
 router.put('/:id/approve', auth, admin, async (req, res) => {
   try {
-    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'approved' }, { new: true })
+    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'approved' }, { returnDocument: 'after' })
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });
@@ -520,7 +520,7 @@ router.put('/:id/approve', auth, admin, async (req, res) => {
 /* ── Admin: reject ── */
 router.put('/:id/reject', auth, admin, async (req, res) => {
   try {
-    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'rejected' }, { new: true })
+    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'rejected' }, { returnDocument: 'after' })
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });
@@ -590,7 +590,7 @@ router.put('/:id/answers/:answerId', auth, admin, async (req, res) => {
     const oaq = await OAQ.findOneAndUpdate(
       { _id: req.params.id, 'answers._id': req.params.answerId },
       { $set: { 'answers.$.text': text.trim() } },
-      { new: true },
+      { returnDocument: 'after' },
     )
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
