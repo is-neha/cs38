@@ -23,6 +23,7 @@ router.put('/:id/read', auth, async (req, res) => {
     await Notification.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       { read: true },
+      { returnDocument: 'after' },
     );
     res.json({ ok: true });
   } catch (err) {
