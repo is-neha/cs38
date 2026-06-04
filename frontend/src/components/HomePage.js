@@ -100,7 +100,7 @@ function HomePage() {
       ],
       threshold: 0.45,
       ignoreLocation: true,
-      minMatchCharLength: 2
+      minMatchCharLength: 1
     });
   }, [searchableFaqs]);
 
