@@ -256,3 +256,28 @@
 .home-status--approved { color: var(--success); }
 .home-status--promoted { color: #2563eb; }
 .home-status--rejected { color: var(--danger); }
+
+/* ── Dark mode ── */
+[data-theme="dark"] .dashboard-btn--secondary:hover {
+  background: rgba(99,102,241,0.15);
+}
+
+[data-theme="dark"] .dashboard-btn--danger:hover {
+  background: rgba(248,113,113,0.15);
+}
+
+[data-theme="dark"] .dashboard-trending-item:hover {
+  border-color: var(--border-hover);
+}
+
+[data-theme="dark"] .dashboard-trending-rank {
+  color: var(--accent);
+}
+
+[data-theme="dark"] .dashboard-myoaq-item:hover {
+  border-color: var(--border-hover);
+}
+
+[data-theme="dark"] .home-status--promoted {
+  color: var(--accent);
+}

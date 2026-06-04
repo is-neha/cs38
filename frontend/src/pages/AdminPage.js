@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AdminPage.css';
@@ -25,15 +25,14 @@ function AdminPage() {
   const [aiResult, setAiResult] = useState({});
   const [aiCheck, setAiCheck] = useState({});
   const [aiCheckLoading, setAiCheckLoading] = useState(null);
-  
-  // Rescued from HEAD: Admin answering state
   const [answeringId, setAnsweringId] = useState(null);
   const [answerText, setAnswerText] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
     if (user && user.role !== 'admin') navigate('/');
-    if (!user) navigate('/auth');
+    if (!user) navigate('/login');
   }, [user, authLoading]);
 
   const fetchOaqs = useCallback(() => {
@@ -84,7 +83,6 @@ function AdminPage() {
     if (res.ok) fetchOaqs();
   };
 
-  // Rescued from HEAD: Admin answering functionality
   const handleAdminAnswer = async (oaqId) => {
     if (!answerText.trim()) return;
     const res = await authFetch(`/api/oaq/${oaqId}/answers`, {
@@ -107,7 +105,7 @@ function AdminPage() {
       body: JSON.stringify({ action }),
     });
     if (res.ok) {
-      if (action === 'dismissed' && oaqId) {
+      if (action === 'resolved' && oaqId) {
         await fetch(`/api/oaq/${oaqId}/reject`, {
           method: 'PUT',
           credentials: 'include',
@@ -204,7 +202,7 @@ function AdminPage() {
 
         {activeTab === 'reports' ? (
           reportsLoading ? (
-            <div className="admin-loader">Loading reports…</div>
+            <div className="admin-loader">Loading reports...</div>
           ) : reports.length === 0 ? (
             <div className="admin-empty">No reports.</div>
           ) : (
@@ -224,6 +222,21 @@ function AdminPage() {
                       )}
                     </div>
                   </div>
+                  {r.oaqId && r.oaqId._id ? (
+                    <div style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: '8px 12px', margin: '8px 0' }}>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{r.oaqId.question || 'Untitled'}</p>
+                      {r.targetType === 'answer' && r.oaqId.answers && (
+                        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
+                          {(() => {
+                            const ans = r.oaqId.answers.find(a => String(a._id) === String(r.targetId));
+                            return ans ? ans.text : 'Answer not found';
+                          })()}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '8px 0' }}>Question no longer exists.</p>
+                  )}
                   <p style={{ fontSize: 14, color: 'var(--text-primary)', margin: '8px 0' }}>"{r.reason}"</p>
                   <div className="admin-card__meta">
                     <span>Reported by {r.reportedBy?.name || 'Unknown'}</span>
@@ -235,14 +248,14 @@ function AdminPage() {
             </div>
           )
         ) : loading ? (
-          <div className="admin-loader">Loading…</div>
+          <div className="admin-loader">Loading...</div>
         ) : oaqs.length === 0 ? (
           <div className="admin-empty">No {activeTab} questions.</div>
         ) : (
           <div className="admin-list">
             {oaqs.map(oaq => (
-              <div key={oaq._id} className="admin-card">
-                <div className="admin-card__header">
+              <div key={oaq._id} className={`admin-card ${expandedId === oaq._id ? 'admin-card--expanded' : ''}`} onClick={() => setExpandedId(expandedId === oaq._id ? null : oaq._id)} style={{ cursor: 'pointer' }}>
+                <div className="admin-card__header" onClick={e => e.stopPropagation()}>
                   <div className="admin-card__votes">
                     <span className="admin-vote-count">
                       {oaq.upvotes}↑ {oaq.downvotes}↓
@@ -254,7 +267,7 @@ function AdminPage() {
                         onClick={() => handleAiSummarize(oaq._id)}
                         disabled={aiLoading === oaq._id}
                       >
-                        {aiLoading === oaq._id ? 'Analyzing…' : 'AI Summarize'}
+                        {aiLoading === oaq._id ? 'Analyzing...' : 'AI Summarize'}
                       </button>
                     )}
                     <button
@@ -262,7 +275,7 @@ function AdminPage() {
                       onClick={() => handleAiCheck(oaq._id)}
                       disabled={aiCheckLoading === oaq._id}
                     >
-                      {aiCheckLoading === oaq._id ? 'Checking…' : 'AI Check'}
+                      {aiCheckLoading === oaq._id ? 'Checking...' : 'AI Check'}
                     </button>
                   </div>
                   <div className="admin-card__actions">
@@ -289,50 +302,52 @@ function AdminPage() {
                   <span>{formatDate(oaq.createdAt)}</span>
                 </div>
 
-                {oaq.answers.length > 0 && (
+                {expandedId === oaq._id && (
                   <div className="admin-answers">
-                    {oaq.answers.map(ans => (
-                      <div key={ans._id} className="admin-answer">
-                        {editAnswer === ans._id ? (
-                          <div className="admin-edit-form">
-                            <textarea
-                              className="admin-edit-textarea"
-                              value={editText}
-                              onChange={e => setEditText(e.target.value)}
-                              rows={3}
-                            />
-                            <div className="admin-edit-actions">
-                              <button className="admin-btn admin-btn--approve" onClick={() => handleEditAnswer(oaq._id, ans._id)}>Save</button>
-                              <button className="admin-btn admin-btn--reject" onClick={() => { setEditAnswer(null); setEditText(''); }}>Cancel</button>
+                    {oaq.answers.length === 0 ? (
+                      <p className="admin-answers-empty">No answers yet.</p>
+                    ) : (
+                      oaq.answers.map(ans => (
+                        <div key={ans._id} className="admin-answer">
+                          {editAnswer === ans._id ? (
+                            <div className="admin-edit-form">
+                              <textarea
+                                className="admin-edit-textarea"
+                                value={editText}
+                                onChange={e => setEditText(e.target.value)}
+                                rows={3}
+                              />
+                              <div className="admin-edit-actions">
+                                <button className="admin-btn admin-btn--approve" onClick={e => { e.stopPropagation(); handleEditAnswer(oaq._id, ans._id); }}>Save</button>
+                                <button className="admin-btn admin-btn--reject" onClick={e => { e.stopPropagation(); setEditAnswer(null); setEditText(''); }}>Cancel</button>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="admin-answer__body">
-                            <p>{ans.text}</p>
-                            <div className="admin-answer__meta">
-                              <span>by {ans.submittedBy?.name || 'Anonymous'}</span>
-                              <span>{formatDate(ans.createdAt)}</span>
-                              <span>{ans.upvotes}↑ {ans.downvotes}↓</span>
-                              
-                              {/* Rescued from HEAD: Admin badging, with encoding fixed */}
-                              {ans.verifiedByAdmin && <span className="admin-accepted-badge" style={{ color: '#059669' }}>✅ Verified by admin</span>}
-                              {ans.answeredByAdmin && <span className="admin-accepted-badge" style={{ color: '#6366f1' }}>✅ Answered by admin</span>}
-                              
-                              {ans.accepted && <span className="admin-accepted-badge">✓ Accepted</span>}
-                              <button className="admin-btn--text" onClick={() => handleAcceptAnswer(oaq._id, ans._id)}>
-                                {ans.accepted ? 'Unaccept' : 'Accept'}
-                              </button>
-                              <button className="admin-btn--text" onClick={() => { setEditAnswer(ans._id); setEditText(ans.text); }}>Edit</button>
+                          ) : (
+                            <div className="admin-answer__body">
+                              <p>{ans.text}</p>
+                              <div className="admin-answer__meta">
+                                <span>by {ans.submittedBy?.name || 'Anonymous'}</span>
+                                <span>{formatDate(ans.createdAt)}</span>
+                                <span>{ans.upvotes}↑ {ans.downvotes}↓</span>
+                                {ans.verifiedByAdmin && <span className="admin-accepted-badge" style={{ color: '#059669' }}>✅ Verified by admin</span>}
+                                {ans.answeredByAdmin && <span className="admin-accepted-badge" style={{ color: '#6366f1' }}>✅ Answered by admin</span>}
+                                {ans.accepted && <span className="admin-accepted-badge">✓ Accepted</span>}
+                                {!oaq.answers.some(a => a.answeredByAdmin) && (
+                                  <button className="admin-btn--text" onClick={e => { e.stopPropagation(); handleAcceptAnswer(oaq._id, ans._id); }}>
+                                    {ans.accepted ? 'Unaccept' : 'Accept'}
+                                  </button>
+                                )}
+                                <button className="admin-btn--text" onClick={e => { e.stopPropagation(); setEditAnswer(ans._id); setEditText(ans.text); }}>Edit</button>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 )}
 
-                {/* Rescued from HEAD: The UI for Admins to quickly answer an open question */}
-                {answeringId === oaq._id ? (
+                {oaq.status === 'open' && answeringId === oaq._id ? (
                   <div className="admin-edit-form" style={{ marginTop: 12 }}>
                     <textarea
                       className="admin-edit-textarea"
@@ -342,15 +357,15 @@ function AdminPage() {
                       placeholder="Write your answer as admin…"
                     />
                     <div className="admin-edit-actions">
-                      <button className="admin-btn admin-btn--approve" onClick={() => handleAdminAnswer(oaq._id)}>Submit Answer</button>
-                      <button className="admin-btn admin-btn--reject" onClick={() => { setAnsweringId(null); setAnswerText(''); }}>Cancel</button>
+                      <button className="admin-btn admin-btn--approve" onClick={e => { e.stopPropagation(); handleAdminAnswer(oaq._id); }}>Submit Answer</button>
+                      <button className="admin-btn admin-btn--reject" onClick={e => { e.stopPropagation(); setAnsweringId(null); setAnswerText(''); }}>Cancel</button>
                     </div>
                   </div>
-                ) : (
-                  <button className="admin-btn--text" onClick={() => setAnsweringId(oaq._id)} style={{ marginTop: 8 }}>
+                ) : oaq.status === 'open' ? (
+                  <button className="admin-btn--text" onClick={e => { e.stopPropagation(); setAnsweringId(oaq._id); }} style={{ marginTop: 8 }}>
                     + Answer as Admin
                   </button>
-                )}
+                ) : null}
 
                 {aiCheck[oaq._id]?.error && (
                   <div className="admin-ai-result" style={{ borderColor: 'var(--warning)', marginTop: 8 }}>
@@ -362,10 +377,9 @@ function AdminPage() {
                   <div className={`admin-ai-result ${aiCheck[oaq._id].relevant ? '' : 'admin-ai-result--spam'}`} style={{ marginTop: 8 }}>
                     <div className="admin-ai-header">AI Check</div>
                     <p className="admin-ai-text">
-                      {/* Fixed encoding here as well */}
                       {aiCheck[oaq._id].relevant
-                        ? '✅ This question appears relevant to the internship.'
-                        : '🚩 This may be unrelated or spam.'}
+                        ? 'This question appears relevant to the internship.'
+                        : 'This may be unrelated or spam.'}
                     </p>
                     {aiCheck[oaq._id].reason && <p className="admin-ai-best">{aiCheck[oaq._id].reason}</p>}
                     {!aiCheck[oaq._id].relevant && (
@@ -387,7 +401,7 @@ function AdminPage() {
                         {aiResult[oaq._id].bestAnswerIndex >= 0 && (
                           <p className="admin-ai-best">
                             Best answer: <strong>#{aiResult[oaq._id].bestAnswerIndex + 1}</strong>
-                            {aiResult[oaq._id].reason && <span> — {aiResult[oaq._id].reason}</span>}
+                            {aiResult[oaq._id].reason && <span>  —  {aiResult[oaq._id].reason}</span>}
                           </p>
                         )}
                       </>

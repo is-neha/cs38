@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const Groq = require('groq-sdk');
 const FAQ = require('./models/FAQ');
 const OAQ = require('./models/OAQ');
+const User = require('./models/User');
 const authRoutes = require('./routes/auth');
 const oaqRoutes = require('./routes/oaq');
 const notificationRoutes = require('./routes/notifications');
@@ -17,9 +18,17 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const groqApiKey = process.env.GROQ_API_KEY;
 
-/* ── Text indexes & search cache ── */
+/* ── Search cache with TTL + max-size eviction ── */
 const searchCache = new Map();
 const SEARCH_CACHE_TTL = 60000;
+const SEARCH_CACHE_MAX = 500;
+function cacheSet(key, value) {
+  if (searchCache.size >= SEARCH_CACHE_MAX) {
+    const oldest = searchCache.keys().next().value;
+    if (oldest !== undefined) searchCache.delete(oldest);
+  }
+  searchCache.set(key, value);
+}
 
 async function ensureIndexes() {
   try {
@@ -35,13 +44,21 @@ async function ensureIndexes() {
 let faqCache = null;
 let faqCacheTime = 0;
 const FAQ_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/faq-app';
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('FATAL: MONGO_URI environment variable is not set');
+  process.exit(1);
+}
+
+let indexesEnsured = false;
 
 function connectDB(retrying) {
-  mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000 })
-    .then(() => {
+  mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000, bufferCommands: false })
+    .then(async () => {
       console.log('Connected to MongoDB' + (retrying ? ' (retry)' : ''));
-      if (!retrying) ensureIndexes();
+      if (!indexesEnsured) { ensureIndexes(); indexesEnsured = true; }
+      await batchScoreUnscored();
     })
     .catch(err => {
       console.error('MongoDB connection error:', err.message);
@@ -64,6 +81,22 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/ai', aiRoutes);
 
 /* ── FAQ listing (cached 5 min, sorted by views) ── */
+const CATEGORY_PRIORITY = [
+  'About the Internship',
+  'Selection & Offer Letter',
+  'NOC (No Objection Certificate)',
+  'Timing & Dates',
+  'Interviews',
+  'Work & Mentorship',
+  'Certificate',
+  'Code of Conduct',
+  'Rosetta (Internship Journal)',
+  'Coursework & ViBe LMS',
+  'ViBe Platform',
+  'Yaksha Chat',
+  'Team Formation'
+];
+
 app.get('/api/faqs', async (req, res) => {
   try {
     const now = Date.now();
@@ -74,6 +107,11 @@ app.get('/api/faqs', async (req, res) => {
     for (const cat of faqs) {
       cat.questions.sort((a, b) => (b.views || 0) - (a.views || 0));
     }
+    faqs.sort((a, b) => {
+      const ai = CATEGORY_PRIORITY.indexOf(a.category);
+      const bi = CATEGORY_PRIORITY.indexOf(b.category);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
     faqCache = faqs;
     faqCacheTime = now;
     res.json(faqs);
@@ -154,7 +192,7 @@ app.get('/api/faqs/search', async (req, res) => {
     ];
 
     const results = await FAQ.aggregate(pipe);
-    searchCache.set(cacheKey, { data: results, ts: Date.now() });
+    cacheSet(cacheKey, { data: results, ts: Date.now() });
     res.json(results);
   } catch (err) {
     /* Fallback to regex search if $text fails */
@@ -162,12 +200,12 @@ app.get('/api/faqs/search', async (req, res) => {
       const query2 = req.query.q?.toLowerCase() || '';
       const words = query2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).filter(Boolean);
       const faqs = await FAQ.find({
-        $or: words.map(w => ({ 'questions.q': { $regex: w, $options: 'i' } })),
+        $or: words.flatMap(w => [{ 'questions.q': { $regex: w, $options: 'i' } }, { 'questions.a': { $regex: w, $options: 'i' } }]),
       }).lean();
       const results = faqs.map(cat => ({
         ...cat,
         questions: cat.questions.filter(q =>
-          words.every(w => q.q.toLowerCase().includes(w))
+          words.every(w => q.q.toLowerCase().includes(w) || q.a.toLowerCase().includes(w))
         ),
       })).filter(cat => cat.questions.length > 0);
       res.json(results);
@@ -180,11 +218,37 @@ app.get('/api/faqs/search', async (req, res) => {
 /* ── Increment FAQ question view ── */
 app.post('/api/faqs/:catId/questions/:qId/view', async (req, res) => {
   try {
-    await FAQ.findOneAndUpdate(
-      { _id: req.params.catId, 'questions._id': req.params.qId },
-      { $inc: { 'questions.$.views': 1 } },
-    );
-    res.json({ ok: true });
+    const userId = req.user?._id || req.body.userId;
+    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.json({ views: 0 });
+    }
+    let views;
+    if (userId) {
+      const cat = await FAQ.findOne({ _id: req.params.catId, 'questions._id': req.params.qId });
+      if (cat) {
+        const q = cat.questions.id(req.params.qId);
+        if (q) {
+          q.viewedBy = q.viewedBy || [];
+          if (!q.viewedBy.some(id => id.toString() === userId)) {
+            q.viewedBy.push(userId);
+            if (q.viewedBy.length > 100) q.viewedBy.shift();
+            q.views = (q.views || 0) + 1;
+            await cat.save();
+            faqCache = null;
+          }
+        }
+        views = cat.questions.id(req.params.qId)?.views || 0;
+      }
+    } else {
+      const updated = await FAQ.findOneAndUpdate(
+        { _id: req.params.catId, 'questions._id': req.params.qId },
+        { $inc: { 'questions.$.views': 1 } },
+        { returnDocument: 'after', projection: { 'questions.$': 1 } },
+      );
+      views = updated?.questions?.[0]?.views || 0;
+      faqCache = null;
+    }
+    res.json({ views });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -231,7 +295,7 @@ app.get('/api/search/all', async (req, res) => {
     ]);
 
     const result = { faq: faqPipe, oaq: oaqResults };
-    searchCache.set(cacheKey, { data: result, ts: Date.now() });
+    cacheSet(cacheKey, { data: result, ts: Date.now() });
     res.json(result);
   } catch (err) {
     /* Fallback regex search */
@@ -260,33 +324,39 @@ app.get('/api/search/suggest', async (req, res) => {
     if (!query || query.length < 2) return res.json([]);
 
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    /* Prefix match for speed: finds questions starting with any word in the query */
+    const words = escaped.split(/\s+/).filter(Boolean);
+    const prefixRegex = words.map(w => new RegExp('\\b' + w, 'i'));
+
     const allQas = await FAQ.aggregate([
       { $unwind: '$questions' },
-      { $project: { _id: 0, cat: '$category', q: '$questions.q', a: '$questions.a' } },
+      {
+        $match: {
+          $or: prefixRegex.map(r => ({ 'questions.q': { $regex: r } })),
+        },
+      },
+      { $project: { _id: 0, cat: '$category', q: '$questions.q' } },
+      { $limit: 30 },
     ]);
 
-    const oaqs = await OAQ.find({ status: { $ne: 'rejected' } }).select('question').lean();
+    const oaqs = await OAQ.find(
+      { $or: prefixRegex.map(r => ({ question: { $regex: r } })), status: { $ne: 'rejected' } },
+    ).select('question').limit(20).lean();
 
+    const seen = new Set();
     const suggestions = [];
 
     for (const item of allQas) {
-      if (item.q.toLowerCase().includes(escaped)) suggestions.push({ text: item.q, type: 'FAQ', cat: item.cat });
-      else if (item.a.toLowerCase().includes(escaped)) suggestions.push({ text: item.a.slice(0, 80), type: 'FAQ', cat: item.cat });
+      const key = item.q.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); suggestions.push({ text: item.q, type: 'FAQ', cat: item.cat }); }
     }
-
     for (const item of oaqs) {
-      if (item.question.toLowerCase().includes(escaped)) suggestions.push({ text: item.question, type: 'OAQ' });
+      const key = item.question.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); suggestions.push({ text: item.question, type: 'OAQ' }); }
     }
 
-    const seen = new Set();
-    const unique = suggestions.filter(s => {
-      const key = s.text.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    res.json(unique.slice(0, 8));
+    res.json(suggestions.slice(0, 8));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -316,6 +386,11 @@ app.get('/api/home', async (req, res) => {
       ]),
     ]);
 
+    faqData.sort((a, b) => {
+      const ai = CATEGORY_PRIORITY.indexOf(a.category);
+      const bi = CATEGORY_PRIORITY.indexOf(b.category);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
     const categoryCards = faqData.map(c => ({
       _id: c._id,
       category: c.category,
@@ -435,83 +510,91 @@ app.get('/api/ai/related', async (req, res) => {
   }
 });
 
-/* ── AI: Check duplicates ── */
+/* ── AI: Check duplicates (compares against ALL FAQ + OAQ) ── */
 app.post('/api/ai/check-duplicate', async (req, res) => {
   try {
     const { question } = req.body;
     if (!question || !question.trim()) return res.json({ duplicates: [], outOfScope: false });
 
-    const q = question.toLowerCase().trim();
-    const words = q.split(/\s+/).filter(w => w.length > 2);
-    if (words.length === 0) return res.json({ duplicates: [], outOfScope: false });
-
-    /* fuzzy char-level regex — same as FAQ search */
-    const fuzzyTerms = words.map(w => new RegExp(w.split('').join('.*'), 'i'));
-    const exactWords = words.map(w => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-
-    const [faqDupes, oaqDupes] = await Promise.all([
-      FAQ.find({ $or: exactWords.flatMap(r => [{ 'questions.q': r }, { 'questions.a': r }]) }).lean(),
-      OAQ.find({ $or: exactWords.map(r => ({ question: r })), status: { $ne: 'rejected' } }).lean(),
+    const [allFaqs, allOaqs] = await Promise.all([
+      FAQ.find().lean(),
+      OAQ.find({ status: { $ne: 'rejected' } }).select('question _id').lean(),
     ]);
 
-    /* fuzzy word-overlap score using full question */
-    const allQWords = q.split(/\s+/);
-    const score = (text) => {
-      const lower = text.toLowerCase();
-      const matched = allQWords.filter(w => lower.includes(w)).length;
-      return matched / allQWords.length;
-    };
-
-    /* fuzzy char-overlap score for out-of-scope detection */
-    const fuzzyScore = (text) => {
-      const lower = text.toLowerCase();
-      const matches = fuzzyTerms.filter(reg => reg.test(lower));
-      return matches.length / words.length;
-    };
-
-    const duplicates = [
-      ...faqDupes.flatMap(c =>
-        c.questions
-          .filter(item => score(item.q) > 0.4)
-          .map(i => ({ text: i.q, source: 'FAQ', score: score(i.q) }))
+    const existingQuestions = [
+      ...allFaqs.flatMap(c =>
+        (c.questions || []).map(q => ({
+          text: q.q,
+          source: 'FAQ',
+          category: c.category,
+          catId: c._id,
+        }))
       ),
-      ...oaqDupes
-        .filter(o => score(o.question) > 0.4)
-        .map(o => ({ text: o.question, source: 'OAQ', id: o._id, score: score(o.question) })),
-    ]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 1);
+      ...allOaqs.map(o => ({
+        text: o.question,
+        source: 'OAQ',
+        id: o._id,
+      })),
+    ];
 
-    let outOfScope = false;
-    if (duplicates.length === 0) {
-      const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
-      let bestFuzzy = 0;
-      for (const text of allFaqTexts) {
-        const fs = fuzzyScore(text);
-        if (fs > bestFuzzy) bestFuzzy = fs;
+    /* ── Pre‑filter for large question sets ── */
+    let candidates = existingQuestions;
+    const MAX_QUESTIONS = 120;
+    if (candidates.length > MAX_QUESTIONS) {
+      const words = question.toLowerCase().match(/\b\w{4,}\b/g) || [];
+      if (words.length > 0) {
+        candidates = candidates.filter(c =>
+          words.some(w => c.text.toLowerCase().includes(w))
+        );
       }
-      outOfScope = bestFuzzy < 0.2;
+      if (candidates.length === 0 || candidates.length > MAX_QUESTIONS) {
+        candidates = candidates.slice(0, MAX_QUESTIONS);
+      }
     }
 
-    /* Validate with Groq AI if available */
-    if (duplicates.length > 0 && groqApiKey) {
+    let duplicates = [];
+    let outOfScope = false;
+
+    if (groqApiKey && candidates.length > 0) {
       const groq = new Groq({ apiKey: groqApiKey });
-      const dup = duplicates[0];
+      const existingFormatted = candidates
+        .map((item, i) => `[${i}] ${item.text}`)
+        .join('\n');
+
+      const prompt = `You are a duplicate question detector. Below is a list of existing questions. Determine if any of them ask the same thing as the new question.
+
+Rules:
+- Two questions are duplicates if a user asking one would be fully satisfied by the answer to the other.
+- If the new question is a subset of an existing question (asks about one part), it IS a duplicate.
+- Ignore typos, extra/missing words, and grammatical differences.
+- Treat paraphrases as duplicates.
+- If none match, return isDuplicate: false.
+- If one matches, return its index from the list.
+
+Existing questions:
+${existingFormatted}
+
+New question: "${question.trim()}"
+
+Reply with ONLY a JSON object:
+{
+  "isDuplicate": true/false,
+  "matchIndex": null or number,
+  "reason": "brief explanation"
+}`;
+
       const completion = await groq.chat.completions.create({
-        messages: [{
-          role: 'user',
-          content: `Are these two questions asking the same thing?
-Existing: "${dup.text}"
-New: "${question.trim()}"
-Reply ONLY with JSON: { "isDuplicate": true/false, "reason": "brief explanation" }`,
-        }],
+        messages: [{ role: 'user', content: prompt }],
         model: 'llama-3.3-70b-versatile',
         temperature: 0.1,
         response_format: { type: 'json_object' },
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-      if (!result.isDuplicate) {
-        return res.json({ duplicates: [], outOfScope: false });
+      if (result.isDuplicate && result.matchIndex !== null && result.matchIndex !== undefined) {
+        const dup = candidates[result.matchIndex];
+        if (dup) {
+          duplicates = [dup];
+        }
       }
     }
 
@@ -524,79 +607,85 @@ Reply ONLY with JSON: { "isDuplicate": true/false, "reason": "brief explanation"
 /* ── Leaderboard ── */
 app.get('/api/leaderboard', async (req, res) => {
   try {
-    const oaqs = await OAQ.find({ status: { $ne: 'rejected' } })
-      .populate('submittedBy', 'name email')
-      .lean({ virtuals: true });
+    const [users, allOaqs] = await Promise.all([
+      User.find({ points: { $gt: 0 } }, 'name email points').sort({ points: -1 }).lean(),
+      OAQ.find({ status: { $ne: 'rejected' } }, 'submittedBy status answers').lean(),
+    ]);
 
-    const userMap = {};
-
-    for (const oaq of oaqs) {
-      const uid = oaq.submittedBy?._id?.toString();
-      if (!uid) continue;
-      if (!userMap[uid]) {
-        userMap[uid] = {
-          _id: uid,
-          name: oaq.submittedBy.name || 'Anonymous',
-          email: oaq.submittedBy.email || '',
-          questionsAsked: 0,
-          answersGiven: 0,
-          upvotesReceived: 0,
-          downvotesReceived: 0,
-          acceptedCount: 0,
-          promotedCount: 0,
-          score: 0,
-        };
-      }
-
-      const u = userMap[uid];
-      u.questionsAsked++;
-      u.upvotesReceived += (oaq.votedUpBy || []).length;
-      u.downvotesReceived += (oaq.votedDownBy || []).length;
-      if (oaq.status === 'promoted') u.promotedCount++;
-
-      for (const ans of oaq.answers) {
-        const ansUid = ans.submittedBy?._id?.toString();
-        if (!ansUid) continue;
-        if (!userMap[ansUid]) {
-          const ansUser = ans.submittedBy || {};
-          userMap[ansUid] = {
-            _id: ansUid,
-            name: ansUser.name || 'Anonymous',
-            email: ansUser.email || '',
-            questionsAsked: 0,
-            answersGiven: 0,
-            upvotesReceived: 0,
-            downvotesReceived: 0,
-            acceptedCount: 0,
-            promotedCount: 0,
-            score: 0,
-          };
-        }
-        const a = userMap[ansUid];
-        a.answersGiven++;
-        a.upvotesReceived += (ans.votedUpBy || []).length;
-        a.downvotesReceived += (ans.votedDownBy || []).length;
-        if (ans.accepted) a.acceptedCount++;
-      }
-    }
-
-    const users = Object.values(userMap);
+    const userSets = {};
     for (const u of users) {
-      u.score =
-        u.questionsAsked * 5 +
-        u.answersGiven * 10 +
-        u.upvotesReceived * 3 +
-        u.downvotesReceived * -2 +
-        u.acceptedCount * 25 +
-        u.promotedCount * 50;
+      const uid = u._id.toString();
+      userSets[uid] = { questionsAsked: 0, answersGiven: 0, acceptedCount: 0, promotedCount: 0 };
     }
 
-    users.sort((a, b) => b.score - a.score);
-    res.json(users);
+    for (const oaq of allOaqs) {
+      const subId = oaq.submittedBy?.toString();
+      if (subId && userSets[subId]) {
+        userSets[subId].questionsAsked++;
+        if (oaq.status === 'promoted') userSets[subId].promotedCount++;
+      }
+      for (const ans of oaq.answers) {
+        const ansId = ans.submittedBy?.toString();
+        if (ansId && userSets[ansId]) {
+          userSets[ansId].answersGiven++;
+          if (ans.accepted) userSets[ansId].acceptedCount++;
+        }
+      }
+    }
+
+    const enriched = users.map(u => ({
+      _id: u._id,
+      name: u.name || 'Anonymous',
+      email: u.email || '',
+      ...userSets[u._id.toString()],
+      score: u.points || 0,
+    }));
+
+    enriched.sort((a, b) => b.score - a.score);
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+/* ── Batch-score unscored questions on startup ── */
+async function batchScoreUnscored() {
+  if (!groqApiKey) { console.log('[batchScore] No GROQ_API_KEY, skipping'); return; }
+  try {
+    const cutoff = new Date(Date.now() - 60000);
+    const unscored = await OAQ.find({
+      createdAt: { $lte: cutoff },
+      $or: [{ importanceScore: { $exists: false } }],
+    });
+    if (unscored.length === 0) return;
+    console.log(`[batchScore] Scoring ${unscored.length} existing question(s)…`);
+    const GroqLib = require('groq-sdk');
+    for (const oaq of unscored) {
+      try {
+        const groq = new GroqLib({ apiKey: groqApiKey });
+        const completion = await groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: 'You are a scoring engine. Rate this question 0-100 based on: specificity (is it detailed?), effort (does it show research?), usefulness (would it help many people?), and clarity (is it well-formed?). Low-effort/gibberish = 0-20. Simple factual lookups = 21-40. Moderate well-formed = 41-60. Specific/detailed = 61-80. Highly valuable/insightful = 81-100. Return ONLY a single integer.' },
+            { role: 'user', content: oaq.question },
+          ],
+          temperature: 0.1,
+          max_tokens: 10,
+        });
+        const raw = completion.choices?.[0]?.message?.content?.trim();
+        const match = raw?.match(/\d+/);
+        const score = match ? parseInt(match[0], 10) : NaN;
+        const finalScore = isNaN(score) ? 50 : Math.max(0, Math.min(100, score));
+        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: finalScore }, { returnDocument: 'after' });
+      } catch {
+        await OAQ.findByIdAndUpdate(oaq._id, { importanceScore: 50 }, { returnDocument: 'after' });
+      }
+    }
+    console.log('Existing questions scored.');
+  } catch (err) {
+    console.error('batchScoreUnscored error:', err.message);
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`FAQ API server running on http://localhost:${PORT}`);

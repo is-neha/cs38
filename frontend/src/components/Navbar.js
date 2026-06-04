@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 import NotificationBell from './NotificationBell';
 import './Navbar.css';
+
 function Navbar() {
   const { user, logout } = useAuth();
+  const { resetTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(p => !p);
-  const closeMenu = () => setIsOpen(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen(p => !p);
+  const closeMenu = () => setMenuOpen(false);
+
   const isAuthPage = location.pathname === '/';
 
   if (isAuthPage && !user) {
@@ -42,20 +47,22 @@ function Navbar() {
             </svg>
             <span>FAQ Portal</span>
           </Link>
-          <Link to={user ? "/home" : "/"} className="navbar-brand-home" onClick={closeMenu}>Home</Link>
         </div>
-        <div className="navbar-links">
-          {user?.role === 'admin' && (
+
+        <div className={`navbar-links${menuOpen ? ' active' : ''}`}>
+          <Link to={user ? "/home" : "/"} className="navbar-link" onClick={closeMenu}>Home</Link>
+          <Link to="/faq" className="navbar-link" onClick={closeMenu}>FAQ</Link>
+          {location.pathname !== '/faq' && user && user.role !== 'admin' && (
             <>
-              <Link to="/faq" className="navbar-link">FAQ</Link>
-              <Link to="/admin" className="navbar-link">Admin</Link>
+              <Link to="/community" className="navbar-link" onClick={closeMenu}>Community</Link>
+              <Link to="/leaderboard" className="navbar-link" onClick={closeMenu}>Leaderboard</Link>
+              <Link to="/dashboard" className="navbar-link" onClick={closeMenu}>Dashboard</Link>
             </>
           )}
-          {user ? (
-            <>
-              {user.role === 'admin' && <button className="navbar-btn" onClick={() => { logout(); navigate('/'); }}>Sign out</button>}
-            </>
-          ) : (
+          {user?.role === 'admin' && (
+            <Link to="/admin" className="navbar-link" onClick={closeMenu}>Admin</Link>
+          )}
+          {!user && (
             <>
               <Link to="/auth" className="navbar-link" onClick={closeMenu}>Sign in</Link>
               <Link to="/auth" className="navbar-btn navbar-btn--primary" onClick={closeMenu}>Sign up</Link>
@@ -63,19 +70,29 @@ function Navbar() {
           )}
         </div>
 
-        {/* Persistent Utilities & Hamburger Controls */}
         <div className="navbar-right">
-          {user && <span className={`navbar-role navbar-role--${user.role}`}>{user.role}</span>}
+          {user && (
+            <div className="navbar-user">
+              <div className={`navbar-avatar navbar-avatar--${user.role}`}>
+                {(user.name || user.email || '?')[0].toUpperCase()}
+              </div>
+              <span className={`navbar-role-tag navbar-role-tag--${user.role}`}>{user.role}</span>
+              <span className="navbar-points">{user.points || 0} pts</span>
+              <button className="navbar-btn--signout" title="Sign out" onClick={async (e) => { e.stopPropagation(); await logout(); resetTheme(); navigate('/'); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </div>
+          )}
+          <button className={`hamburger${menuOpen ? ' open' : ''}`} onClick={toggleMenu} aria-label="Toggle menu">
+            <div className="bar" /><div className="bar" /><div className="bar" />
+          </button>
           <NotificationBell />
           <div className="navbar-lamp">
             <ThemeToggle />
-          </div>
-          
-          {/* Hamburger Icon Element (Displays to the right of indicators on mobile views) */}
-          <div className="hamburger" onClick={toggleMenu}>
-            <div className={`bar ${isOpen ? 'open' : ''}`}></div>
-            <div className={`bar ${isOpen ? 'open' : ''}`}></div>
-            <div className={`bar ${isOpen ? 'open' : ''}`}></div>
           </div>
         </div>
       </div>

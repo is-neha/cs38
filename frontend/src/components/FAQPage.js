@@ -2,46 +2,49 @@
  * FAQPage — Main FAQ page component.
  *
  * Data flow:
- * 1) On mount, fetches all FAQ categories+questions from /api/faqs.
- * 2) Search filters the data client-side via a multi-word substring match
- * against question text (q) and answer text (a).
- * 3) Results are displayed either as a card grid (default) or a flat list
- * (when a search query is active).
+ *   1) On mount, fetches all FAQ categories+questions from /api/faqs.
+ *   2) Search filters the data client-side via a multi-word substring match
+ *      against question text (q) and answer text (a).
+ *   3) Results are displayed either as a card grid (default) or a flat list
+ *      (when a search query is active).
  *
  * Accordion (expand/collapse):
- * A flat object (openItems) tracks which question is open per category
- * by mapping category index → question index. Only one question per
- * category can be open at a time (accordion behaviour).
+ *   A flat object (openItems) tracks which question is open per category
+ *   by mapping category index → question index. Only one question per
+ *   category can be open at a time (accordion behaviour).
  *
  * Voice search:
- * Uses the Web Speech API (SpeechRecognition). When the mic button is
- * clicked, listening starts; on result, the transcript is set as the
- * search query.
+ *   Uses the Web Speech API (SpeechRecognition). When the mic button is
+ *   clicked, listening starts; on result, the transcript is set as the
+ *   search query.
  *
  * Autocomplete dropdown:
- * Rendered by the AutocorrectInput component. It fetches suggestions
- * from /api/search/suggest with a 250 ms debounce and shows a
- * positioned dropdown.
+ *   Rendered by the AutocorrectInput component. It fetches suggestions
+ *   from /api/search/suggest with a 250 ms debounce and shows a
+ *   positioned dropdown.
  *
  * Clear / Empty states:
- * A clear (×) button appears when searchQuery is non-empty. If
- * displayedData is empty and a search is active, an "empty" state is
- * shown with a button to clear the search.
+ *   A clear (×) button appears when searchQuery is non-empty. If
+ *   displayedData is empty and a search is active, an "empty" state is
+ *   shown with a button to clear the search.
  */
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import FAQItem from './FAQItem';
 import AutocorrectInput from './AutocorrectInput';
 import './FAQPage.css';
+import Fuse from "fuse.js";
 
 function FAQPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [faqData, setFaqData] = useState([]);           // Full data from the API
   const [searchQuery, setSearchQuery] = useState('');    // Current search text
-  const [loading, setLoading] = useState(true);          // Loading spinner state
+  const [loading, setLoading] = useState(true);           // Loading spinner state
   const [listening, setListening] = useState(false);      // Voice recognition active?
-  const [openItems, setOpenItems] = useState({});         // Accordion: { [catIndex]: qIndex | null }
+  const [openQuestionId, setOpenQuestionId] = useState(null);     // Accordion: { [catIndex]: qIndex | null }
   const gridRef = useRef(null);
   const recognitionRef = useRef(null);
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -90,51 +93,126 @@ function FAQPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  // ── Scroll to category from URL param ──
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const catParam = searchParams.get('category');
+    const qParam = searchParams.get('question');
+    if (!catParam || faqData.length === 0) return;
+    if (qParam) {
+      for (const cat of faqData) {
+        const match = cat.questions.find(q => q.q === qParam);
+        if (match) {
+          setOpenQuestionId(match._id);
+          setTimeout(() => {
+            const el = document.getElementById(`faq-${match._id}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 350);
+          break;
+        }
+      }
+    } else {
+      const id = `faq-cat-${catParam.replace(/\s+/g, '-')}`;
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const cat = faqData.find(c => c.category === catParam);
+        if (cat && cat.questions.length > 0) {
+          setOpenQuestionId(cat.questions[0]._id);
+        }
+      }
+    }
+  }, [searchParams, faqData]);
+
   // ── Client-side search filtering ──
   // If the trimmed query is empty or shorter than 2 characters, return all
   // data unchanged. Otherwise split the query into words and keep only
   // questions where every word appears somewhere in `q` or `a`
   // (case-insensitive substring match). Categories that end up with zero
   // matching questions are filtered out.
+
+  const searchableFaqs = useMemo(() => {
+    const items = [];
+
+    faqData.forEach((category, catIdx) => {
+      category.questions.forEach((question, qIdx) => {
+        items.push({
+          category: category.category,
+          icon: category.icon,
+          question: question.q,
+          answer: question.a,
+          qId: question._id,
+          catIdx,
+          qIdx
+        });
+      });
+    });
+
+    return items;
+  }, [faqData]);
+
+  const fuse = useMemo(() => {
+    return new Fuse(searchableFaqs, {
+      keys: [
+        { name: "question", weight: 0.7 },
+        { name: "answer", weight: 0.2 },
+        { name: "category", weight: 0.1 }
+      ],
+      threshold: 0.45,
+      ignoreLocation: true,
+      minMatchCharLength: 2
+    });
+  }, [searchableFaqs]);
+
+  const suggestions = useMemo(() => {
+    const query = searchQuery.trim();
+
+    if (query.length < 2) return [];
+
+    return fuse
+      .search(query)
+      .slice(0, 10)
+      .map(result => result.item);
+
+  }, [searchQuery, fuse]);
+
   const displayedData = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q || q.length < 2) return faqData;
-    const words = q.split(/\s+/).filter(Boolean);
+    const query = searchQuery.trim();
+
+    if (query.length < 2) {
+      return faqData;
+    }
+
+    const matchedIds = new Set(
+      fuse.search(query).map(result => result.item.qId)
+    );
+
     return faqData
-      .map(cat => ({
-        ...cat,
-        questions: cat.questions.filter(item =>
-          words.every(w =>
-            item.q.toLowerCase().includes(w) ||
-            (item.a && item.a.toLowerCase().includes(w))
-          )
-        ),
+      .map(category => ({
+        ...category,
+        questions: category.questions.filter(
+          question => matchedIds.has(question._id)
+        )
       }))
-      .filter(cat => cat.questions.length > 0);
-  }, [faqData, searchQuery]);
+      .filter(category => category.questions.length > 0);
+
+  }, [faqData, searchQuery, fuse]);
 
   const isSearching = searchQuery.trim().length >= 2;
-
-  // ── Accordion toggle ──
-  // Sets the open item for a given category. If the same question index is
-  // clicked again it closes (sets null), implementing a single-open-per-
-  // category accordion.
-  const toggleItem = useCallback((catIndex, qIndex) => {
-    setOpenItems(prev => ({
-      ...prev,
-      [catIndex]: prev[catIndex] === qIndex ? null : qIndex,
-    }));
-  }, []);
 
   // ── View counter ──
   // Optimistically increments the view count locally so the UI updates
   // immediately (the actual POST to the API is handled inside FAQItem).
-  const handleView = useCallback((catIdx, qIdx) => {
-    setFaqData(prev => prev.map((cat, i) =>
-      i === catIdx ? { ...cat, questions: cat.questions.map((q, j) =>
-        j === qIdx ? { ...q, views: (q.views || 0) + 1 } : q
-      ) } : cat
-    ));
+  const handleView = useCallback((catIdx, qIdx, actualViews) => {
+    if (actualViews !== undefined) {
+      setFaqData(prev => prev.map((cat, i) =>
+        i === catIdx ? {
+          ...cat, questions: cat.questions.map((q, j) =>
+            j === qIdx ? { ...q, views: actualViews } : q
+          )
+        } : cat
+      ));
+    }
   }, []);
 
   // ── Loading skeleton ──
@@ -180,13 +258,13 @@ function FAQPage() {
 
         {/* ── Search bar with autocomplete, voice, and clear ── */}
         <div className="faq-search-wrapper">
-            {/* "New question" button navigates to the community page */}
-            <button className="faq-ask-btn" onClick={() => navigate('/community')}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              New question
-            </button>
+          {/* "New question" button navigates to the community page */}
+          <button className="faq-ask-btn" onClick={() => navigate('/community')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New question
+          </button>
           <div className="faq-search">
             {/* Search icon */}
             <svg className="faq-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -198,7 +276,22 @@ function FAQPage() {
               className="faq-search-input"
               placeholder="Search questions or keywords..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              suggestions={suggestions}
+              onSuggestionClick={(item) => {
+                setSearchQuery(item.question);
+
+                setOpenQuestionId(item.qId);
+
+                setTimeout(() => {
+                  document
+                    .getElementById(`faq-${item.qId}`)
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center"
+                    });
+                }, 100);
+              }}
             />
             {/* Voice search button — only rendered if the browser supports it */}
             {micSupported && (
@@ -222,9 +315,9 @@ function FAQPage() {
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
-              )}
-            </div>
+            )}
           </div>
+        </div>
 
         {/* ── Content area ── */}
         {displayedData.length === 0 ? (
@@ -251,7 +344,7 @@ function FAQPage() {
             </div>
             <div className="faq-list">
               {displayedData.map((category, catIdx) => (
-                <div key={catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.05}s` }}>
+                <div id={`faq-cat-${category.category.replace(/\s+/g, '-')}`} key={catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.05}s` }}>
                   <div className="faq-category-card__header">
                     <span className="faq-category-card__icon">{category.icon}</span>
                     <h2 className="faq-category-card__title">{category.category}</h2>
@@ -262,12 +355,17 @@ function FAQPage() {
                       number={qIdx + 1}
                       question={item.q}
                       answer={item.a}
-                      isOpen={openItems[catIdx] === qIdx}
-                      onToggle={() => toggleItem(catIdx, qIdx)}
+                      isOpen={openQuestionId === item._id}
+                      onToggle={() =>
+                        setOpenQuestionId(
+                          openQuestionId === item._id ? null : item._id
+                        )
+                      }
                       catId={category._id}
                       qId={item._id}
                       views={item.views}
-                      onView={() => handleView(catIdx, qIdx)}
+                      onView={(actual) => handleView(catIdx, qIdx, actual)}
+                      userId={user?._id}
                     />
                   ))}
                 </div>
@@ -278,7 +376,7 @@ function FAQPage() {
           /* ── Default grid view — category cards arranged in a responsive grid ── */
           <div className="faq-grid" ref={gridRef}>
             {displayedData.map((category, catIdx) => (
-              <div key={category._id || catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.06}s` }}>
+              <div id={`faq-cat-${category.category.replace(/\s+/g, '-')}`} key={category._id || catIdx} className="faq-category-card" style={{ animationDelay: `${catIdx * 0.06}s` }}>
                 <div className="faq-category-card__header">
                   <span className="faq-category-card__icon">{category.icon}</span>
                   <h2 className="faq-category-card__title">{category.category}</h2>
@@ -291,12 +389,17 @@ function FAQPage() {
                       number={qIdx + 1}
                       question={item.q}
                       answer={item.a}
-                      isOpen={openItems[catIdx] === qIdx}
-                      onToggle={() => toggleItem(catIdx, qIdx)}
+                      isOpen={openQuestionId === item._id}
+                      onToggle={() =>
+                        setOpenQuestionId(
+                          openQuestionId === item._id ? null : item._id
+                        )
+                      }
                       catId={category._id}
                       qId={item._id}
                       views={item.views}
-                      onView={() => handleView(catIdx, qIdx)}
+                      onView={(actual) => handleView(catIdx, qIdx, actual)}
+                      userId={user?._id}
                     />
                   ))}
                 </div>

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Groq = require('groq-sdk');
 const OAQ = require('../models/OAQ');
 const FAQ = require('../models/FAQ');
+const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { auth } = require('../middleware/auth');
 const { admin } = require('../middleware/admin');
@@ -10,33 +11,72 @@ const { admin } = require('../middleware/admin');
 const router = express.Router();
 const groqApiKey = process.env.GROQ_API_KEY;
 
+async function awardPoints(userId, points) {
+  if (!userId) return;
+  try {
+    await User.findByIdAndUpdate(userId, { $inc: { points } }, { returnDocument: 'after' });
+  } catch {
+    // Ignore points update failures so they don't crash request handlers
+  }
+}
+
+/* ── AI importance scorer ── */
+async function scoreImportance(questionText) {
+  if (!groqApiKey || !questionText) return 50;
+  try {
+    const groq = new Groq({ apiKey: groqApiKey });
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: 'You are a scoring engine. Rate this question 0-100 based on: specificity (is it detailed?), effort (does it show research?), usefulness (would it help many people?), and clarity (is it well-formed?). Low-effort/gibberish = 0-20. Simple factual lookups = 21-40. Moderate well-formed = 41-60. Specific/detailed = 61-80. Highly valuable/insightful = 81-100. Return ONLY a single integer.' },
+        { role: 'user', content: questionText },
+      ],
+      temperature: 0.1,
+      max_tokens: 10,
+    });
+    const raw = completion.choices?.[0]?.message?.content?.trim();
+    const match = raw?.match(/\d+/);
+    const score = match ? parseInt(match[0], 10) : NaN;
+    return isNaN(score) ? 50 : Math.max(0, Math.min(100, score));
+  } catch {
+    return 50;
+  }
+}
+
 /* ── List OAQs ── */
 router.get('/', async (req, res) => {
   try {
-    const { status, sort } = req.query;
-    let filter = {};
-    
-    // Kept the advanced filtering from HEAD
+    const { status, hasAnswers } = req.query;
+    const filter = {};
     if (status && ['open', 'approved', 'promoted', 'rejected'].includes(status)) {
       filter.status = status;
-    } else {
-      filter.$and = [
-        { status: { $ne: 'rejected' } },
-        { $or: [
-          { status: { $in: ['approved', 'promoted'] } },
-          { status: 'open', 'answers.answeredByAdmin': true },
-        ]}
-      ];
+    } else if (!status) {
+      filter.status = { $ne: 'rejected' };
     }
-    
-    let sortOpt = { createdAt: -1 };
-    if (sort === 'votes') sortOpt = { createdAt: -1 };
-    if (sort === 'trending') sortOpt = { createdAt: -1 };
-    
-    const oaqs = await OAQ.find(filter)
+    if (hasAnswers === 'false') {
+      filter['answers.0'] = { $exists: false };
+    }
+    if (hasAnswers === 'true') {
+      filter['answers.0'] = { $exists: true };
+    }
+    let oaqs = await OAQ.find(filter)
       .populate('submittedBy', 'name')
-      .populate('answers.submittedBy', 'name')
-      .sort(sortOpt);
+      .populate('answers.submittedBy', 'name');
+
+    const now = new Date();
+    const twentyFourH = 24 * 60 * 60 * 1000;
+
+    oaqs = oaqs.map(o => {
+      const isUnanswered = o.status === 'open' && (!o.answers || o.answers.length === 0);
+      const isStale = isUnanswered && (now - new Date(o.createdAt)) > twentyFourH;
+      return { ...o.toJSON(), isStale };
+    });
+
+    oaqs.sort((a, b) =>
+      ((b.importanceScore ?? 0) - (a.importanceScore ?? 0)) ||
+      (new Date(b.createdAt) - new Date(a.createdAt))
+    );
+
     res.json(oaqs);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -46,8 +86,32 @@ router.get('/', async (req, res) => {
 /* ── Increment OAQ view ── */
 router.post('/:id/view', async (req, res) => {
   try {
-    await OAQ.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
-    res.json({ ok: true });
+    const userId = req.user?._id || req.body.userId;
+    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.json({ views: 0 });
+    }
+    let views;
+    if (userId) {
+      const oaq = await OAQ.findById(req.params.id);
+      if (oaq) {
+        oaq.viewedBy = oaq.viewedBy || [];
+        if (!oaq.viewedBy.some(id => id.toString() === userId)) {
+          oaq.viewedBy.push(userId);
+          if (oaq.viewedBy.length > 100) oaq.viewedBy.shift();
+          oaq.views = (oaq.views || 0) + 1;
+          await oaq.save();
+        }
+        views = oaq.views || 0;
+      }
+    } else {
+      const updated = await OAQ.findByIdAndUpdate(
+        req.params.id,
+        { $inc: { views: 1 } },
+        { returnDocument: 'after', projection: { views: 1 } },
+      );
+      views = updated?.views || 0;
+    }
+    res.json({ views });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -59,7 +123,7 @@ router.get('/:id', async (req, res) => {
     const oaq = await OAQ.findByIdAndUpdate(
       req.params.id,
       { $inc: { views: 1 } },
-      { new: true },
+      { returnDocument: 'after' },
     )
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
@@ -70,7 +134,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-/* ── Submit OAQ (with duplicate check) ── */
+/* ── Submit OAQ (with AI duplicate check against ALL existing questions) ── */
 router.post('/', auth, async (req, res) => {
   try {
     const { question, description, category } = req.body;
@@ -78,69 +142,57 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ error: 'Question is required' });
     }
 
-    const q = question.toLowerCase().trim();
-    const words = q.split(/\s+/).filter(w => w.length > 2);
-    const wordRegexes = words.map(w => new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-
-    const [faqDupes, oaqDupes] = await Promise.all([
-      FAQ.find({ $or: wordRegexes.flatMap(r => [{ 'questions.q': r }, { 'questions.a': r }]) }).lean(),
-      OAQ.find({ $or: wordRegexes.map(r => ({ question: r })), status: { $ne: 'rejected' } }).lean(),
+    /* Fetch all FAQ + OAQ questions for AI comparison */
+    const [allFaqs, allOaqs] = await Promise.all([
+      FAQ.find().lean(),
+      OAQ.find({ status: { $ne: 'rejected' } }).select('question _id').lean(),
     ]);
 
-    /* score using ALL words in the question */
-    const allQWords = q.split(/\s+/);
-    const score = (text) => {
-      const lower = text.toLowerCase();
-      const matched = allQWords.filter(w => lower.includes(w)).length;
-      return matched / allQWords.length;
-    };
-
-    /* HEAD: fuzzy char-level score for out-of-scope detection */
-    const fuzzyTerms = words.map(w => new RegExp(w.split('').join('.*'), 'i'));
-    const fuzzyScore = (text) => {
-      const lower = text.toLowerCase();
-      const matches = fuzzyTerms.filter(reg => reg.test(lower));
-      return matches.length / words.length;
-    };
-
-    const allDupes = [
-      ...faqDupes.flatMap(c =>
-        c.questions
-          .filter(item => score(item.q) > 0.4)
-          .map(i => ({ text: i.q, source: 'FAQ', score: score(i.q) }))
+    const existingQuestions = [
+      ...allFaqs.flatMap(c =>
+        (c.questions || []).map(q => ({
+          text: q.q,
+          source: 'FAQ',
+          category: c.category,
+          catId: c._id,
+        }))
       ),
-      ...oaqDupes
-        .filter(o => score(o.question) > 0.4)
-        .map(o => ({ text: o.question, source: 'OAQ', id: o._id, score: score(o.question) })),
-    ].sort((a, b) => b.score - a.score);
-    const topDupes = allDupes.slice(0, 1);
+      ...allOaqs.map(o => ({
+        text: o.question,
+        source: 'OAQ',
+        id: o._id,
+      })),
+    ];
 
-    /* HEAD: out-of-scope detection */
-    let outOfScope = false;
-    if (allDupes.length === 0) {
-      const allFaqTexts = faqDupes.flatMap(c => c.questions.map(item => item.q + ' ' + item.a));
-      let bestFuzzy = 0;
-      for (const text of allFaqTexts) {
-        const fs = fuzzyScore(text);
-        if (fs > bestFuzzy) bestFuzzy = fs;
-      }
-      outOfScope = bestFuzzy < 0.2;
-    }
-
-    if (topDupes.length > 0 && groqApiKey) {
-      /* INCOMING: Use Groq AI to decide if it's truly a duplicate */
+    if (groqApiKey && existingQuestions.length > 0) {
       const groq = new Groq({ apiKey: groqApiKey });
-      const dup = topDupes[0];
-      const prompt = `You are comparing two questions to decide if they are asking the same thing.
 
-Existing question: "${dup.text}"
+      const existingFormatted = existingQuestions
+        .map((item, i) => `[${i}] ${item.text}`)
+        .join('\n');
+
+      const prompt = `You are a duplicate question detector. Below is a list of existing questions. Determine if any of them ask the same thing as the new question.
+
+Rules:
+- Two questions are duplicates if a user asking one would be fully satisfied by the answer to the other.
+- If the new question is a subset of an existing question (asks about one part), it IS a duplicate.
+- Ignore typos, extra/missing words, and grammatical differences.
+- Treat paraphrases as duplicates.
+- If none match, return isDuplicate: false.
+- If one matches, return its index from the list.
+
+Existing questions:
+${existingFormatted}
+
 New question: "${question.trim()}"
 
-Are these two questions asking the same thing? Reply with ONLY a JSON object:
+Reply with ONLY a JSON object:
 {
   "isDuplicate": true/false,
+  "matchIndex": null or number,
   "reason": "brief explanation"
 }`;
+
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: 'llama-3.3-70b-versatile',
@@ -148,26 +200,28 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
         response_format: { type: 'json_object' },
       });
       const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-      
-      if (result.isDuplicate) {
-        /* Notify original asker if duplicate is an OAQ */
-        if (dup.source === 'OAQ' && dup.id) {
-          const originalOaq = await OAQ.findById(dup.id).populate('submittedBy', 'name');
-          if (originalOaq && originalOaq.submittedBy &&
-              originalOaq.submittedBy._id.toString() !== req.user._id.toString()) {
-            await Notification.create({
-              user: originalOaq.submittedBy._id,
-              type: 'related',
-              message: `${req.user.name} asked a similar question: "${question.trim().slice(0, 60)}${question.trim().length > 60 ? '…' : ''}"`,
-              link: '/community',
-            });
+      if (result.isDuplicate && result.matchIndex !== null && result.matchIndex !== undefined) {
+        const dup = existingQuestions[result.matchIndex];
+        if (!dup) {
+          /* fall through if index is out of bounds */
+        } else {
+          const topDupes = [dup];
+          /* Notify original asker if duplicate is an OAQ */
+          if (dup.source === 'OAQ' && dup.id) {
+            const originalOaq = await OAQ.findById(dup.id).populate('submittedBy', 'name');
+            if (originalOaq && originalOaq.submittedBy &&
+                originalOaq.submittedBy._id.toString() !== req.user._id.toString()) {
+              await Notification.create({
+                user: originalOaq.submittedBy._id,
+                type: 'related',
+                message: `${req.user.name} asked a similar question: "${question.trim().slice(0, 60)}${question.trim().length > 60 ? '…' : ''}"`,
+                link: '/community',
+              });
+            }
           }
+          return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '' });
         }
-        return res.status(409).json({ duplicates: topDupes, aiReason: result.reason || '', outOfScope });
       }
-    } else if (topDupes.length > 0) {
-      /* No Groq key — fall back to word-overlap blocking */
-      return res.status(409).json({ duplicates: topDupes, outOfScope });
     }
 
     const oaq = await OAQ.create({
@@ -176,80 +230,91 @@ Are these two questions asking the same thing? Reply with ONLY a JSON object:
       category: category?.trim() || '',
       submittedBy: req.user._id,
     });
+    /* Score importance via AI (non-blocking) */
+    scoreImportance(question.trim()).then(score => {
+      OAQ.findByIdAndUpdate(oaq._id, { importanceScore: score }, { returnDocument: 'after' }).catch(() => {});
+    });
     await oaq.populate('submittedBy', 'name');
+    awardPoints(req.user._id, 5);
 
-    /* INCOMING: Similarity-frequency auto-promote */
-    const similarOpen = await OAQ.find({
-      _id: { $ne: oaq._id },
-      question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
-      status: { $in: ['open', 'approved'] },
-      answers: { $exists: true, $not: { $size: 0 } },
-    }).lean({ virtuals: true });
+    /* ── Similarity-frequency auto-promote ── */
+    try {
+      const q = question.toLowerCase().trim();
+      const words = q.split(/\s+/).filter(w => w.length > 2);
+      const similarOpen = await OAQ.find({
+        _id: { $ne: oaq._id },
+        question: { $regex: new RegExp(words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i') },
+        status: { $in: ['open', 'approved'] },
+        answers: { $exists: true, $not: { $size: 0 } },
+      }).lean({ virtuals: true });
 
-    let scored = similarOpen
-      .map(o => ({
-        ...o,
-        _score: score(o.question),
-      }))
-      .filter(o => o._score > 0.4)
-      .sort((a, b) => b._score - a._score);
+      let scored = similarOpen
+        .map(o => ({
+          ...o,
+          _score: (o.question.toLowerCase().split(/\s+/).filter(w => words.includes(w)).length / Math.max(words.length, 1)),
+        }))
+        .filter(o => o._score > 0.4)
+        .sort((a, b) => b._score - a._score);
 
-    if (scored.length >= 1 && groqApiKey) {
-      /* Validate similarity with Groq AI before promoting */
-      const groq = new Groq({ apiKey: groqApiKey });
-      for (const candidate of scored) {
-        const completion = await groq.chat.completions.create({
-          messages: [{
-            role: 'user',
-            content: `Are these two questions asking about the same topic?
-Question 1: "${candidate.question}"
-Question 2: "${question.trim()}"
-Reply ONLY with JSON: { "sameTopic": true/false }`,
-          }],
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.1,
-          response_format: { type: 'json_object' },
-        });
-        const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
-        if (result.sameTopic) {
-          scored = [candidate];
-          break;
+      if (scored.length >= 1 && groqApiKey) {
+        const groq = new Groq({ apiKey: groqApiKey });
+        for (const candidate of scored) {
+          const completion = await groq.chat.completions.create({
+            messages: [{
+              role: 'user',
+              content: `Are these two questions asking about the same topic? Consider them the same if one asks what the other asks, even with different wording or minor typos.
+  Question 1: "${candidate.question}"
+  Question 2: "${question.trim()}"
+  Reply ONLY with JSON: { "sameTopic": true/false }`,
+            }],
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.1,
+            response_format: { type: 'json_object' },
+          });
+          const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+          if (result.sameTopic) {
+            scored = [candidate];
+            break;
+          }
         }
+        if (scored.length > 1) scored = [];
       }
-      if (scored.length > 1) scored = [];
-    }
 
-    if (scored.length >= 1) {
-      const best = scored[0];
-      const bestAnswer = best.answers.find(a => a.accepted) ||
-        best.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
-      if (bestAnswer) {
-        const catName = best.category || 'Community Questions';
-        let targetCat = await FAQ.findOne({ category: catName });
-        if (!targetCat) {
-          targetCat = await FAQ.create({ category: catName, icon: '🌐', questions: [] });
-        }
-        targetCat.questions.push({ q: best.question, a: bestAnswer.text, source: 'community', resolved: true });
-        await targetCat.save();
+      if (scored.length >= 1) {
+        const best = scored[0];
+        const bestAnswer = best.answers.find(a => a.accepted) ||
+          [...best.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
+        if (bestAnswer) {
+          const catName = best.category || 'Community Questions';
+          let targetCat = await FAQ.findOne({ category: catName });
+          if (!targetCat) {
+            targetCat = await FAQ.create({ category: catName, icon: '🌐', questions: [] });
+          }
+          targetCat.questions.push({ q: best.question, a: bestAnswer.text, source: 'community', resolved: true });
+          await targetCat.save();
 
-        await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } });
+          await OAQ.findByIdAndUpdate(best._id, { status: 'promoted', $inc: { promotedCount: 1 } }, { returnDocument: 'after' });
+          if (best.submittedBy) awardPoints(best.submittedBy, 50);
 
-        if (best.submittedBy) {
+          if (best.submittedBy) {
+            await Notification.create({
+              user: best.submittedBy,
+              type: 'promoted',
+              message: `Your question was promoted to FAQ (similar questions trend): "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
+              link: '/faq',
+            });
+          }
+
           await Notification.create({
-            user: best.submittedBy,
-            type: 'promoted',
-            message: `Your question was promoted to FAQ (similar questions trend): "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
+            user: oaq.submittedBy._id,
+            type: 'related',
+            message: `A similar question was promoted to FAQ: "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
             link: '/faq',
           });
         }
-
-        await Notification.create({
-          user: oaq.submittedBy._id,
-          type: 'related',
-          message: `A similar question was promoted to FAQ: "${best.question.slice(0, 60)}${best.question.length > 60 ? '…' : ''}"`,
-          link: '/faq',
-        });
       }
+    } catch (autoPromoteErr) {
+      console.log('[auto-promote] non-critical error:', autoPromoteErr.message);
     }
 
     res.status(201).json(oaq);
@@ -269,8 +334,6 @@ router.post('/:id/answers', auth, async (req, res) => {
     if (oaq.status === 'promoted' || oaq.status === 'rejected') {
       return res.status(400).json({ error: 'Cannot answer a promoted or rejected question' });
     }
-    
-    /* HEAD: Validations */
     if (oaq.status === 'approved' && req.user.role !== 'admin') {
       return res.status(400).json({ error: 'This question is closed for new answers' });
     }
@@ -278,9 +341,9 @@ router.post('/:id/answers', auth, async (req, res) => {
       return res.status(400).json({ error: 'You cannot answer your own question' });
     }
 
-    /* HEAD: Add answer with admin tracking */
     oaq.answers.push({ text: text.trim(), submittedBy: req.user._id, answeredByAdmin: req.user.role === 'admin' });
     await oaq.save();
+    awardPoints(req.user._id, 10);
 
     if (oaq.submittedBy.toString() !== req.user._id.toString()) {
       await Notification.create({
@@ -291,7 +354,7 @@ router.post('/:id/answers', auth, async (req, res) => {
       });
     }
 
-    /* INCOMING: Notify other answerers about the follow-up */
+    /* Notify other answerers about the follow-up */
     const answererIds = [...new Set(
       oaq.answers
         .filter(a => a.submittedBy.toString() !== req.user._id.toString())
@@ -349,11 +412,20 @@ router.post('/:id/vote', auth, async (req, res) => {
 
     await oaq.save();
 
+    const wasUpvoted = value === 1 && !alreadyUp;
+    const wasDownvoted = value === -1 && !alreadyDown;
+    if (wasUpvoted && oaq.submittedBy.toString() !== userId.toString()) {
+      awardPoints(oaq.submittedBy, 3);
+    }
+    if (wasDownvoted && oaq.submittedBy.toString() !== userId.toString()) {
+      awardPoints(oaq.submittedBy, -2);
+    }
+
     /* ── Auto-promote ── */
     const netVotes = (oaq.votedUpBy || []).length - (oaq.votedDownBy || []).length;
     if (netVotes >= 10 && oaq.status === 'approved') {
       const bestAnswer = oaq.answers.find(a => a.accepted) ||
-        oaq.answers.sort((a, b) => (b.votedUpBy.length - b.votedDownBy.length) - (a.votedUpBy.length - a.votedDownBy.length))[0];
+        [...oaq.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
       const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
       const catName = oaq.category || 'Community Questions';
@@ -367,6 +439,7 @@ router.post('/:id/vote', auth, async (req, res) => {
       oaq.status = 'promoted';
       oaq.promotedCount = (oaq.promotedCount || 0) + 1;
       await oaq.save();
+      awardPoints(oaq.submittedBy, 50);
 
       await Notification.create({
         user: oaq.submittedBy,
@@ -419,6 +492,15 @@ router.post('/:id/answers/:answerId/vote', auth, async (req, res) => {
 
     await oaq.save();
 
+    const answerUpvoted = value === 1 && !alreadyUp;
+    const answerDownvoted = value === -1 && !alreadyDown;
+    if (answerUpvoted && answer.submittedBy && answer.submittedBy.toString() !== userId.toString()) {
+      awardPoints(answer.submittedBy, 3);
+    }
+    if (answerDownvoted && answer.submittedBy && answer.submittedBy.toString() !== userId.toString()) {
+      awardPoints(answer.submittedBy, -2);
+    }
+
     const updated = await OAQ.findById(oaq._id)
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
@@ -431,7 +513,7 @@ router.post('/:id/answers/:answerId/vote', auth, async (req, res) => {
 /* ── Admin: approve ── */
 router.put('/:id/approve', auth, admin, async (req, res) => {
   try {
-    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'approved' }, { new: true })
+    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'approved' }, { returnDocument: 'after' })
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });
@@ -452,7 +534,7 @@ router.put('/:id/approve', auth, admin, async (req, res) => {
 /* ── Admin: reject ── */
 router.put('/:id/reject', auth, admin, async (req, res) => {
   try {
-    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'rejected' }, { new: true })
+    const oaq = await OAQ.findByIdAndUpdate(req.params.id, { status: 'rejected' }, { returnDocument: 'after' })
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
     if (!oaq) return res.status(404).json({ error: 'Not found' });
@@ -477,11 +559,8 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     if (!oaq) return res.status(404).json({ error: 'Not found' });
 
     const acceptedAnswer = oaq.answers.find(a => a.accepted);
-    const bestAnswer = acceptedAnswer || oaq.answers.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
-    
-    /* HEAD: Mark as verified by admin */
+    const bestAnswer = acceptedAnswer || [...oaq.answers].sort((a, b) => ((b.votedUpBy?.length || 0) - (b.votedDownBy?.length || 0)) - ((a.votedUpBy?.length || 0) - (a.votedDownBy?.length || 0)))[0];
     if (bestAnswer) bestAnswer.verifiedByAdmin = true;
-    
     const answerText = bestAnswer ? bestAnswer.text : oaq.question;
 
     const catName = oaq.category || 'Community Questions';
@@ -501,6 +580,7 @@ router.put('/:id/promote', auth, admin, async (req, res) => {
     oaq.status = 'promoted';
     oaq.promotedCount = (oaq.promotedCount || 0) + 1;
     await oaq.save();
+    awardPoints(oaq.submittedBy._id, 50);
 
     await Notification.create({
       user: oaq.submittedBy._id,
@@ -524,7 +604,7 @@ router.put('/:id/answers/:answerId', auth, admin, async (req, res) => {
     const oaq = await OAQ.findOneAndUpdate(
       { _id: req.params.id, 'answers._id': req.params.answerId },
       { $set: { 'answers.$.text': text.trim() } },
-      { new: true },
+      { returnDocument: 'after' },
     )
       .populate('submittedBy', 'name')
       .populate('answers.submittedBy', 'name');
@@ -541,6 +621,9 @@ router.put('/:id/answers/:answerId/accept', auth, admin, async (req, res) => {
     const oaq = await OAQ.findById(req.params.id);
     if (!oaq) return res.status(404).json({ error: 'Not found' });
 
+    const hasAdminAnswer = oaq.answers.some(a => a.answeredByAdmin);
+    if (hasAdminAnswer) return res.status(400).json({ error: 'Cannot accept answers after admin has answered' });
+
     const answer = oaq.answers.id(req.params.answerId);
     if (!answer) return res.status(404).json({ error: 'Answer not found' });
 
@@ -548,6 +631,7 @@ router.put('/:id/answers/:answerId/accept', auth, admin, async (req, res) => {
     await oaq.save();
 
     if (answer.accepted && answer.submittedBy) {
+      awardPoints(answer.submittedBy, 25);
       await Notification.create({
         user: answer.submittedBy,
         type: 'accepted',

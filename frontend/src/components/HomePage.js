@@ -1,24 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import AutocorrectInput from './AutocorrectInput';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import FAQItem from './FAQItem';
+import Fuse from 'fuse.js';
 import './HomePage.css';
 
 function HomePage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [homeData, setHomeData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState(null);
   const [openItems, setOpenItems] = useState({});
   const [activeTab, setActiveTab] = useState('all');
   const [listening, setListening] = useState(false);
   const [selectedCat, setSelectedCat] = useState(null);
   const [flipping, setFlipping] = useState(null);
   const [catOpenItems, setCatOpenItems] = useState({});
-  const searchTimer = useRef(null);
   const searchInputRef = useRef(null);
   const gridRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -41,7 +40,6 @@ function HomePage() {
       const text = e.results[0][0].transcript;
       setSearchQuery(text);
       setListening(false);
-      doSearch(text);
     };
     rec.onerror = () => setListening(false);
     rec.onend = () => setListening(false);
@@ -73,45 +71,70 @@ function HomePage() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  const doSearch = useCallback((q) => {
-    if (!q.trim()) { setSearchResults(null); return; }
-    fetch(`/api/search/all?q=${encodeURIComponent(q)}`)
-      .then(res => res.json())
-      .then(data => {
-        const combined = [];
-        for (const cat of (data.faq || [])) {
-          for (const item of cat.questions) {
-            combined.push({ ...item, _type: 'FAQ', _cat: cat.category, _icon: cat.icon, _catId: cat._id });
-          }
+  const searchableFaqs = useMemo(() => {
+    const items = [];
+    if (homeData?.categoryCards) {
+      for (const cat of homeData.categoryCards) {
+        for (const item of (cat.questions || [])) {
+          items.push({
+            qId: item._id,
+            question: item.q,
+            answer: item.a,
+            icon: cat.icon,
+            category: cat.category,
+            _type: 'FAQ',
+            _catId: cat._id
+          });
         }
-        for (const item of (data.oaq || [])) {
-          combined.push({ ...item, _type: 'OAQ' });
-        }
-        setSearchResults(combined);
-      })
-      .catch(() => setSearchResults([]));
-  }, []);
+      }
+    }
+    return items;
+  }, [homeData]);
 
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => doSearch(searchQuery), 300);
-    return () => clearTimeout(searchTimer.current);
-  }, [searchQuery, doSearch]);
+  const fuse = useMemo(() => {
+    return new Fuse(searchableFaqs, {
+      keys: [
+        { name: "question", weight: 0.7 },
+        { name: "answer", weight: 0.2 },
+        { name: "category", weight: 0.1 }
+      ],
+      threshold: 0.45,
+      ignoreLocation: true,
+      minMatchCharLength: 2
+    });
+  }, [searchableFaqs]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q || q.length < 2) return null;
+    return fuse.search(q).map(result => result.item);
+  }, [searchQuery, fuse]);
+
+  const suggestions = useMemo(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) return [];
+    return fuse.search(q).slice(0, 10).map(result => result.item);
+  }, [searchQuery, fuse]);
 
   const toggleItem = useCallback((idx) => {
     setOpenItems(prev => ({ ...prev, [idx]: prev[idx] === undefined ? 0 : prev[idx] === 0 ? null : 0 }));
   }, []);
 
   const handleView = useCallback((catId, qId) => {
-    const idx = (searchResults || []).findIndex(
-      i => i._type === 'FAQ' && i._catId === catId && i._id === qId
-    );
-    if (idx >= 0) {
-      setSearchResults(prev => prev.map((item, i) =>
-        i === idx ? { ...item, views: (item.views || 0) + 1 } : item
-      ));
-    }
-  }, [searchResults]);
+    setHomeData(prev => {
+      if (!prev) return prev;
+      const cards = prev.categoryCards?.map(cat => {
+        if (cat._id !== catId) return cat;
+        return {
+          ...cat,
+          questions: cat.questions.map(q =>
+            q._id === qId ? { ...q, views: (q.views || 0) + 1 } : q
+          ),
+        };
+      });
+      return { ...prev, categoryCards: cards };
+    });
+  }, []);
 
   const quickFilters = [
     { key: 'all', label: 'All' },
@@ -148,16 +171,7 @@ function HomePage() {
   return (
     <div className="home-page">
       <div className="home-gradient" />
-
       <div className="home-container">
-        <nav className="home-subnav">
-          <Link to="/faq" className="home-subnav-link">FAQ</Link>
-          <Link to="/community" className="home-subnav-link">Community</Link>
-          <Link to="/leaderboard" className="home-subnav-link">Leaderboard</Link>
-          <Link to="/dashboard" className="home-subnav-link">Dashboard</Link>
-          {user && <button className="home-subnav-link home-subnav-signout" onClick={() => { logout(); navigate('/'); }}>Sign out</button>}
-        </nav>
-
         {/* Hero / Search */}
         <div className="home-hero">
           <span className="home-badge">Vicharanashala Help Center</span>
@@ -175,6 +189,8 @@ function HomePage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 inputRef={searchInputRef}
+                suggestions={suggestions}
+                onSuggestionClick={(item) => setSearchQuery(item.question)}
               />
               {micSupported && (
                 <button
@@ -191,7 +207,7 @@ function HomePage() {
                 </button>
               )}
               {searchQuery && (
-                <button className="home-search-clear" onClick={() => { setSearchQuery(''); setSearchResults(null); }}>
+                <button className="home-search-clear" onClick={() => { setSearchQuery(''); }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
                 </button>
               )}
@@ -224,7 +240,7 @@ function HomePage() {
           <div className="home-results">
             <div className="home-results-header">
               <span className="home-results-count">{searchResults.length} result{searchResults.length !== 1 ? 's' : ''}</span>
-              <button className="home-results-clear" onClick={() => { setSearchQuery(''); setSearchResults(null); }}>Clear</button>
+              <button className="home-results-clear" onClick={() => { setSearchQuery(''); }}>Clear</button>
             </div>
             {searchResults.length === 0 ? (
               <div className="home-results-empty">
@@ -239,14 +255,15 @@ function HomePage() {
                     <FAQItem
                       key={i}
                       number={i + 1}
-                      question={item.q}
-                      answer={item.a}
+                      question={item.question}
+                      answer={item.answer}
                       isOpen={openItems[i] === 0}
                       onToggle={() => toggleItem(i)}
                       catId={item._catId}
-                      qId={item._id}
+                      qId={item.qId}
                       views={item.views}
-                      onView={() => handleView(item._catId, item._id)}
+                      userId={user?._id}
+                      onView={() => handleView(item._catId, item.qId)}
                     />
                   ) : (
                     <div key={i} className="home-result-oaq" onClick={() => navigate('/community')}>
@@ -372,6 +389,7 @@ function HomePage() {
                         views={item.views || 0}
                         catId={selectedCat._id}
                         qId={item._id}
+                        userId={user?._id}
                         isOpen={!!catOpenItems[item._id]}
                         onToggle={() => setCatOpenItems(prev => ({ ...prev, [item._id]: !prev[item._id] }))}
                         onView={() => {

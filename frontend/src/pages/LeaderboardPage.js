@@ -10,10 +10,13 @@ const RULES = [
   { action: 'Q&A promoted to FAQ', points: '+50' },
 ];
 
+const PAGE_SIZE = 10;
+
 function LeaderboardPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRules, setShowRules] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetch('/api/leaderboard')
@@ -21,6 +24,12 @@ function LeaderboardPage() {
       .then(data => { setUsers(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE;
+  const paged = users.slice(start, start + PAGE_SIZE);
+
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
 
   return (
     <div className="lb-page">
@@ -52,11 +61,12 @@ function LeaderboardPage() {
         ) : users.length === 0 ? (
           <div className="lb-empty">No contributors yet.</div>
         ) : (
+          <>
           <div className="lb-list">
-            {users.map((u, i) => (
-              <div key={u._id} className={`lb-card ${i < 3 ? `lb-card--rank-${i + 1}` : ''}`}>
+            {paged.map((u, i) => (
+              <div key={u._id} className={`lb-card ${start + i < 3 ? `lb-card--rank-${start + i + 1}` : ''}`}>
                 <div className="lb-rank">
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                  {start + i === 0 ? '🥇' : start + i === 1 ? '🥈' : start + i === 2 ? '🥉' : `#${start + i + 1}`}
                 </div>
                 <div className="lb-avatar">
                   {u.name.charAt(0).toUpperCase()}
@@ -76,6 +86,16 @@ function LeaderboardPage() {
               </div>
             ))}
           </div>
+          {totalPages > 1 && (
+            <div className="lb-pagination">
+              <button className="lb-page-btn" disabled={page === 1} onClick={() => setPage(page - 1)}>‹</button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button key={i + 1} className={`lb-page-btn ${page === i + 1 ? 'lb-page-btn--active' : ''}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
+              ))}
+              <button className="lb-page-btn" disabled={page === totalPages} onClick={() => setPage(page + 1)}>›</button>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
@@ -5,7 +6,12 @@ async function createAdmin() {
   const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/faq-app';
   const name = process.argv[2] || 'Admin';
   const email = process.argv[3] || 'admin@faq.com';
-  const password = process.argv[4] || 'admin123';
+  const password = process.argv[4];
+  if (!password || password.length < 8) {
+    console.error('Usage: node scripts/create-admin.js [name] [email] <password (min 8 chars)>');
+    console.error('Password is required and must be at least 8 characters.');
+    process.exit(1);
+  }
 
   try {
     await mongoose.connect(MONGO_URI);
