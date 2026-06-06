@@ -36,8 +36,8 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
             
             {/* Catch old standalone links and push to unified Auth */}
-            <Route path="/login" element={<Navigate to="/auth" replace />} />
-            <Route path="/register" element={<Navigate to="/auth" replace />} />
+            <Route path="/login" element={<Navigate to="/auth?tab=signin" replace />} />
+            <Route path="/register" element={<Navigate to="/auth?tab=signup" replace />} />
             
             {/* Guest Access allowed here */}
             <Route path="/faq" element={<FAQPage />} />

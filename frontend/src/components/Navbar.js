@@ -64,8 +64,8 @@ function Navbar() {
           )}
           {!user && (
             <>
-              <Link to="/auth" className="navbar-link" onClick={closeMenu}>Sign in</Link>
-              <Link to="/auth" className="navbar-btn navbar-btn--primary" onClick={closeMenu}>Sign up</Link>
+              <Link to="/auth?tab=signin" className="navbar-link" onClick={closeMenu}>Sign in</Link>
+              <Link to="/auth?tab=signup" className="navbar-btn navbar-btn--primary" onClick={closeMenu}>Sign up</Link>
             </>
           )}
         </div>
